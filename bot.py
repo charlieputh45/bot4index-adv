@@ -405,9 +405,9 @@ async def send_log_file(client, message: Message):
 async def stats_command(client, message: Message):
     """Show statistics (only for OWNER_ID)."""
     try:
-        total_auth_users = auth_users_col.count_documents({})
-        total_users = users_col.count_documents({})
-        total_files = files_col.count_documents({})
+        total_auth_users = await auth_users_col.count_documents({})
+        total_users = await users_col.count_documents({})
+        total_files = await files_col.count_documents({})
         stats = await db.command("dbstats")  # <-- await here
         db_storage = stats.get("storageSize", 0)
 
