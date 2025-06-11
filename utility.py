@@ -302,9 +302,11 @@ async def extract_movie_info(caption):
 file_queue = asyncio.Queue()
 
 async def file_queue_worker(bot):
+    processing_count = 0  # Track how many files processed in this batch
     while True:
         item = await file_queue.get()
         file_info, reply_func = item
+        processing_count += 1
         try:
             # Check for duplicate by file name in this channel
             existing = await files_col.find_one({
@@ -361,6 +363,18 @@ async def file_queue_worker(bot):
             file_queue.task_done()
             if file_queue.empty():
                 await invalidate_all_tmdb_cache()
+                # Notify when all files in the queue are processed
+                try:
+                    await safe_api_call(
+                        bot.send_message(
+                            LOG_CHANNEL_ID,
+                            f"✅ Done processing {processing_count} file(s) in the queue.",
+                            parse_mode=enums.ParseMode.HTML
+                        )
+                    )
+                except Exception:
+                    pass
+                processing_count = 0  # Reset for next batch
 
 # =========================
 # Unified File Queueing
