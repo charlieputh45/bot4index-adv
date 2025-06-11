@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>N Files Index</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body { background: #181a1b; color: #e0e0e0; }
+    .poster-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 1.2rem;
+    }
+    .poster-tile {
+        background: #23272b;
+        border-radius: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        position: relative;
+        padding: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .poster-tile:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        border-color: #0d6efd;
+    }
+    .poster-img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        background: #181a1b;
+        display: block;
+        border-radius: 0.7rem;
+        max-height: 350px;
+    }
+    .file-card {
+        background: #23272b;
+        border-radius: 0.7rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+        margin-bottom: 1rem;
+        padding: 1rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+        text-align: left;
+    }
+    .file-info-block {
+        min-width: 0;
+        margin-bottom: 0.2rem;
+        word-break: break-all;
+    }
+    .file-label {
+        font-size: 0.93em;
+        color: #7da0fa;
+        margin-bottom: 0.1em;
+        font-weight: 500;
+    }
+    .file-value {
+        color: #e0e0e0;
+        font-size: 1em;
+        word-break: break-all;
+    }
+    .file-name { font-weight: 600; }
+    @media (max-width: 576px) {
+        .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+        .poster-img { max-height: 200px; }
+        .file-card { padding: 0.7rem 0.5rem; }
+    }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <h2 class="mb-4 text-center">N Files Index</h2>
+    <div class="mb-4 d-flex justify-content-center">
+        <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by file name...">
+    </div>
+    <div id="posterGrid" class="poster-grid"></div>
+    <div class="d-flex justify-content-center mt-3">
+        <button id="loadMoreBtn" class="btn btn-primary">Load More</button>
+    </div>
+    <div class="d-flex justify-content-center mt-2">
+        <div id="loadingSpinner" class="spinner-border text-primary" style="display:none" role="status"></div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="fileModal" tabindex="-1" aria-labelledby="fileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fileModalLabel"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body d-flex flex-column flex-md-row">
+        <div class="flex-shrink-0 me-md-4 mb-3 mb-md-0 text-center">
+            <img id="modalPoster" class="tmdb-poster-modal" src="" alt="Screenshot" style="width:100%;max-width:220px;border-radius:0.7rem;margin-bottom:1rem;">
+        </div>
+        <div class="flex-grow-1">
+            <div id="modalFileInfo"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const apiBase = ""; // Change if needed
+let allNFiles = [];
+let offset = 0;
+const limit = 10;
+let hasMore = true;
+let currentQuery = "";
+
+const posterGrid = document.getElementById('posterGrid');
+const loadMoreBtn = document.getElementById('loadMoreBtn');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const searchInput = document.getElementById('searchInput');
+
+loadMoreBtn.disabled = true;
+
+function humanFileSize(bytes) {
+    if (!bytes) return '';
+    const thresh = 1024;
+    if (Math.abs(bytes) < thresh) return bytes + ' B';
+    const units = ['KB','MB','GB','TB','PB','EB','ZB','YB'];
+    let u = -1;
+    do {
+        bytes /= thresh;
+        ++u;
+    } while(Math.abs(bytes) >= thresh && u < units.length - 1);
+    return bytes.toFixed(1)+' '+units[u];
+}
+
+function renderPosters(results, append=false) {
+    if (!append) posterGrid.innerHTML = "";
+    results.forEach((file, idx) => {
+        const div = document.createElement('div');
+        div.className = 'poster-tile fade-in';
+        div.tabIndex = 0;
+        div.setAttribute('role', 'button');
+        div.setAttribute('aria-label', file.file_name || "Poster");
+        div.onclick = () => showFileModal(file);
+        div.innerHTML = `
+            <img class="poster-img" src="${file.thumb_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="Thumb">
+        `;
+        posterGrid.appendChild(div);
+    });
+}
+
+function showFileModal(file) {
+    document.getElementById('fileModalLabel').textContent = file.file_name || '';
+    document.getElementById('modalPoster').src = file.ss_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg';
+    document.getElementById('modalFileInfo').innerHTML = `
+        <div class="file-card">
+            <div class="file-info-block">
+                <div class="file-value file-name">${file.file_name || ''}</div>
+            </div>
+            <div class="file-info-block">
+                <div class="file-label">Size / Format</div>
+                <div class="file-value">${humanFileSize(file.file_size) || ''}${file.file_format ? ' · ' + file.file_format : ''}</div>
+            </div>
+            <div class="file-info-block">
+                <div class="file-label">Added On</div>
+                <div class="file-value">${file.date || ''}</div>
+            </div>
+            <div class="file-info-block">
+                <div class="file-label">Channel ID</div>
+                <div class="file-value">${file.channel_id || ''}</div>
+            </div>
+            <div class="file-info-block">
+                <div class="file-label">Message ID</div>
+                <div class="file-value">${file.message_id || ''}</div>
+            </div>
+            <div class="file-info-block">
+                <a class="btn btn-success btn-sm" href="${file.telegram_link}" target="_blank">Send</a>
+            </div>
+        </div>
+    `;
+    const modal = new bootstrap.Modal(document.getElementById('fileModal'));
+    modal.show();
+}
+
+async function loadAllNFiles(reset=false) {
+    if (reset) {
+        offset = 0;
+        allNFiles = [];
+        posterGrid.innerHTML = "";
+        hasMore = true;
+    }
+    if (!hasMore) return;
+    loadMoreBtn.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    try {
+        const url = new URL(`${apiBase}/api/all-n-files`);
+        url.searchParams.set("offset", offset);
+        url.searchParams.set("limit", limit);
+        if (currentQuery) url.searchParams.set("q", currentQuery);
+
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error("API error");
+        const data = await resp.json();
+        const newResults = data.results || [];
+        if (reset) {
+            allNFiles = newResults;
+            posterGrid.innerHTML = "";
+        } else {
+            allNFiles = allNFiles.concat(newResults);
+        }
+        renderPosters(newResults, !reset);
+        offset += limit;
+        hasMore = data.has_more;
+        loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+        loadMoreBtn.disabled = !hasMore;
+    } catch (e) {
+        alert("Failed to load files.");
+    } finally {
+        loadingSpinner.style.display = 'none';
+    }
+}
+
+loadMoreBtn.addEventListener('click', () => {
+    loadAllNFiles(false);
+});
+
+searchInput.addEventListener('input', () => {
+    currentQuery = searchInput.value.trim();
+    loadAllNFiles(true);
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    loadAllNFiles(true);
+});
+</script>
+</body>
+</html>

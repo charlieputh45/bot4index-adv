@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from db import allowed_channels_col, files_col
+from db import allowed_channels_col, files_col, n_files_col
 from config import BOT_USERNAME, MY_DOMAIN
 from utility import generate_telegram_link, all_tmdb_files_cache
 from datetime import datetime
@@ -145,6 +145,53 @@ async def api_all_tmdb_files(
 
     response_data = {
         "results": [serialize_tmdb_entry(e) for e in tmdb_entries],
+        "has_more": has_more,
+        "total": total
+    }
+    all_tmdb_files_cache[cache_key] = response_data
+
+    return JSONResponse(response_data)
+
+@api.get("/api/all-n-files")
+async def api_all_n_files(
+    q: str = "",
+    offset: int = 0,
+    limit: int = 10
+):
+    """
+    Return entries from n_files_col, paginated and filtered by search query.
+    """
+    cache_key = f"nfiles:{q}:{offset}:{limit}"
+    if cache_key in all_tmdb_files_cache:
+        cached = all_tmdb_files_cache[cache_key]
+        return JSONResponse(cached)
+
+    query = {}
+    if q:
+        regex = ".*".join(map(lambda s: s, q.strip().split()))
+        query["file_name"] = {"$regex": regex, "$options": "i"}
+
+    cursor = n_files_col.find(query, {"_id": 0}).sort("date", -1).skip(offset).limit(limit)
+    n_files = await cursor.to_list(length=limit)
+
+    def serialize_n_file(file):
+        return {
+            "file_name": file.get("file_name"),
+            "file_size": file.get("file_size"),
+            "file_format": file.get("file_format"),
+            "date": file.get("date").strftime('%Y-%m-%d %H:%M:%S') if isinstance(file.get("date"), datetime) else file.get("date", ""),
+            "telegram_link": file.get("telegram_link"),
+            "channel_id": file.get("channel_id"),
+            "message_id": file.get("message_id"),
+            "ss_url": file.get("ss_url", ""),
+            "thumb_url": file.get("thumb_url", "")
+        }
+
+    total = await n_files_col.count_documents(query)
+    has_more = offset + limit < total
+
+    response_data = {
+        "results": [serialize_n_file(f) for f in n_files],
         "has_more": has_more,
         "total": total
     }
