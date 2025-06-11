@@ -9,8 +9,23 @@
     body { background: #181a1b; color: #e0e0e0; }
     .poster-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 1.2rem;
+    }
+    @media (max-width: 1200px) {
+        .poster-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+    }
+    @media (max-width: 900px) {
+        .poster-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+    }
+    @media (max-width: 700px) {
+        .poster-grid {
+            grid-template-columns: 1fr;
+        }
     }
     .poster-tile {
         background: #23272b;
@@ -25,6 +40,7 @@
         align-items: center;
         justify-content: center;
         transition: box-shadow 0.2s, border-color 0.2s;
+        min-height: 220px;
     }
     .poster-tile:hover {
         box-shadow: 0 4px 16px rgba(0,0,0,0.25);
@@ -37,7 +53,8 @@
         background: #181a1b;
         display: block;
         border-radius: 0.7rem;
-        max-height: 350px;
+        max-height: 340px;
+        margin: 0 auto;
     }
     .file-card {
         background: #23272b;
@@ -68,10 +85,61 @@
         word-break: break-all;
     }
     .file-name { font-weight: 600; }
-    @media (max-width: 576px) {
-        .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
-        .poster-img { max-height: 200px; }
-        .file-card { padding: 0.7rem 0.5rem; }
+    .tmdb-poster-modal {
+        width: 100%;
+        max-width: 480px;
+        border-radius: 0.7rem;
+        margin-bottom: 1rem;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        height: auto;
+        max-height: 70vh;
+        object-fit: contain;
+        background: #181a1b;
+        padding: 0.5rem;
+        box-sizing: border-box;
+    }
+    .modal-body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0;
+    }
+    @media (max-width: 992px) {
+        .tmdb-poster-modal {
+            max-width: 80vw;
+            max-height: 50vh;
+        }
+    }
+    @media (max-width: 700px) {
+        .container {
+            padding-left: 0.3rem !important;
+            padding-right: 0.3rem !important;
+        }
+        .tmdb-poster-modal {
+            max-width: 96vw !important;
+            width: 96vw !important;
+            padding-left: 2vw !important;
+            padding-right: 2vw !important;
+            max-height: 38vh !important;
+        }
+        .modal-content {
+            width: 100vw;
+            max-width: 100vw;
+        }
+        .modal-dialog {
+            margin: 0;
+            width: 100vw;
+            max-width: 100vw;
+        }
+    }
+    @media (max-width: 400px) {
+        .tmdb-poster-modal {
+            max-width: 92vw !important;
+            width: 99vw !important;
+            max-height: 30vh !important;
+        }
     }
     </style>
 </head>
@@ -98,11 +166,11 @@
         <h5 class="modal-title" id="fileModalLabel"></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body d-flex flex-column flex-md-row">
-        <div class="flex-shrink-0 me-md-4 mb-3 mb-md-0 text-center">
-            <img id="modalPoster" class="tmdb-poster-modal" src="" alt="Screenshot" style="width:100%;max-width:220px;border-radius:0.7rem;margin-bottom:1rem;">
+      <div class="modal-body">
+        <div class="flex-shrink-0 mb-3 text-center w-100">
+            <img id="modalPoster" class="tmdb-poster-modal" src="" alt="Screenshot">
         </div>
-        <div class="flex-grow-1">
+        <div class="flex-grow-1 w-100">
             <div id="modalFileInfo"></div>
         </div>
       </div>
@@ -156,7 +224,7 @@ function renderPosters(results, append=false) {
 }
 
 function showFileModal(file) {
-    document.getElementById('fileModalLabel').textContent = file.file_name || '';
+    document.getElementById('fileModalLabel').textContent = '';
     document.getElementById('modalPoster').src = file.ss_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg';
     document.getElementById('modalFileInfo').innerHTML = `
         <div class="file-card">
@@ -170,14 +238,6 @@ function showFileModal(file) {
             <div class="file-info-block">
                 <div class="file-label">Added On</div>
                 <div class="file-value">${file.date || ''}</div>
-            </div>
-            <div class="file-info-block">
-                <div class="file-label">Channel ID</div>
-                <div class="file-value">${file.channel_id || ''}</div>
-            </div>
-            <div class="file-info-block">
-                <div class="file-label">Message ID</div>
-                <div class="file-value">${file.message_id || ''}</div>
             </div>
             <div class="file-info-block">
                 <a class="btn btn-success btn-sm" href="${file.telegram_link}" target="_blank">Send</a>
