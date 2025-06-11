@@ -175,12 +175,17 @@ async def api_all_n_files(
     n_files = await cursor.to_list(length=limit)
 
     def serialize_n_file(file):
+        bot_username = BOT_USERNAME
+        # Always generate telegram_link
+        telegram_link = generate_telegram_link(
+            bot_username, file.get("channel_id"), file.get("message_id")
+        )
         return {
             "file_name": file.get("file_name"),
             "file_size": file.get("file_size"),
             "file_format": file.get("file_format"),
             "date": file.get("date").strftime('%Y-%m-%d %H:%M:%S') if isinstance(file.get("date"), datetime) else file.get("date", ""),
-            "telegram_link": file.get("telegram_link"),
+            "telegram_link": telegram_link,
             "channel_id": file.get("channel_id"),
             "message_id": file.get("message_id"),
             "ss_url": file.get("ss_url", ""),
