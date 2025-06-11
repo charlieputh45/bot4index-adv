@@ -1,0 +1,10 @@
+pyrofork
+fastapi
+uvicorn
+pymongo
+python-dotenv
+TgCrypto
+requests
+imdbpy
+aiohttp
+motor
