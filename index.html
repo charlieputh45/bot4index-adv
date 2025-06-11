@@ -419,7 +419,9 @@ async function searchByCastName(castName) {
         if (!resp.ok) throw new Error("API error");
         const data = await resp.json();
         const results = data.results || [];
+        allTmdbResults = results; 
         renderPosters(results, false);
+        offset = limit; 
         hasMore = data.has_more;
         loadMoreBtn.style.display = hasMore ? 'block' : 'none';
         loadMoreBtn.disabled = !hasMore;
@@ -449,7 +451,9 @@ async function searchByDirectorName(directorName) {
         if (!resp.ok) throw new Error("API error");
         const data = await resp.json();
         const results = data.results || [];
+        allTmdbResults = results;
         renderPosters(results, false);
+        offset = limit;
         hasMore = data.has_more;
         loadMoreBtn.style.display = hasMore ? 'block' : 'none';
         loadMoreBtn.disabled = !hasMore;
@@ -479,7 +483,9 @@ async function searchByGenre(genreName) {
         if (!resp.ok) throw new Error("API error");
         const data = await resp.json();
         const results = data.results || [];
+        allTmdbResults = results;
         renderPosters(results, false);
+        offset = limit;
         hasMore = data.has_more;
         loadMoreBtn.style.display = hasMore ? 'block' : 'none';
         loadMoreBtn.disabled = !hasMore;
