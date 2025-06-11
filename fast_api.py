@@ -3,8 +3,35 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from db import allowed_channels_col, files_col, n_files_col
 from config import BOT_USERNAME, MY_DOMAIN
-from utility import generate_telegram_link, all_tmdb_files_cache
-from datetime import datetime
+from utility import generate_telegram_link
+from datetime import datetime, timedelta
+
+# --- Simple in-memory cache with expiry ---
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
+class ExpiringCache:
+    def __init__(self, ttl_seconds):
+        self.ttl = ttl_seconds
+        self._cache = {}
+
+    def get(self, key):
+        entry = self._cache.get(key)
+        if not entry:
+            return None
+        value, expires_at = entry
+        if datetime.utcnow() > expires_at:
+            del self._cache[key]
+            return None
+        return value
+
+    def set(self, key, value):
+        expires_at = datetime.utcnow() + timedelta(seconds=self.ttl)
+        self._cache[key] = (value, expires_at)
+
+    def clear(self):
+        self._cache.clear()
+
+all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
 
 api = FastAPI()
 api.add_middleware(
@@ -27,53 +54,6 @@ async def api_channels():
     channels = await cursor.to_list(length=None)
     return JSONResponse({"channels": channels})
 
-'''
-@api.get("/api/channel/{channel_id}/files")
-async def api_channel_files(
-    channel_id: int,
-    q: str = "",
-    offset: int = 0,
-    limit: int = 10
-):
-    """List files for a channel (JSON)."""
-    bot_username = BOT_USERNAME
-    query = {"channel_id": channel_id}
-    if q:
-        regex = ".*".join(map(lambda s: s, q.strip().split()))
-        query["file_name"] = {"$regex": regex, "$options": "i"}
-
-    cache_key = f"{channel_id}:{q}:{offset}:{limit}"
-    if cache_key not in channel_files_cache:
-        files = list(files_col.find(query, {"_id": 0}).sort("message_id", -1))
-        for file in files:
-            file["telegram_link"] = generate_telegram_link(bot_username, file["channel_id"], file["message_id"])
-            if isinstance(file.get("date"), str):
-                try:
-                    file["date"] = datetime.fromisoformat(file["date"])
-                except Exception:
-                    file["date"] = None
-        channel_files_cache[cache_key] = files
-    else:
-        files = channel_files_cache[cache_key]
-
-    paginated_files = files[offset:offset+limit]
-    has_more = offset + limit < len(files)
-
-    def serialize_file(file):
-        return {
-            "file_name": file.get("file_name"),
-            "file_size": file.get("file_size"),
-            "file_format": file.get("file_format"),
-            "date": file.get("date").strftime('%Y-%m-%d %H:%M:%S') if file.get("date") else "",
-            "telegram_link": file.get("telegram_link")
-        }
-
-    return JSONResponse({
-        "files": [serialize_file(f) for f in paginated_files],
-        "has_more": has_more
-    })
-'''
-
 @api.get("/api/all-tmdb-files")
 async def api_all_tmdb_files(
     q: str = "",
@@ -87,8 +67,8 @@ async def api_all_tmdb_files(
     Return TMDB entries with their files, sorted by release_date descending, paginated, and filtered by search query or cast.
     """
     cache_key = f"{q}:{cast}:{director}:{genre}:{offset}:{limit}"
-    if cache_key in all_tmdb_files_cache:
-        cached = all_tmdb_files_cache[cache_key]
+    cached = all_tmdb_files_cache.get(cache_key)
+    if cached:
         return JSONResponse(cached)
 
     query = {}
@@ -148,7 +128,7 @@ async def api_all_tmdb_files(
         "has_more": has_more,
         "total": total
     }
-    all_tmdb_files_cache[cache_key] = response_data
+    all_tmdb_files_cache.set(cache_key, response_data)
 
     return JSONResponse(response_data)
 
@@ -162,8 +142,8 @@ async def api_all_n_files(
     Return entries from n_files_col, paginated and filtered by search query.
     """
     cache_key = f"nfiles:{q}:{offset}:{limit}"
-    if cache_key in all_tmdb_files_cache:
-        cached = all_tmdb_files_cache[cache_key]
+    cached = all_tmdb_files_cache.get(cache_key)
+    if cached:
         return JSONResponse(cached)
 
     query = {}
@@ -200,6 +180,6 @@ async def api_all_n_files(
         "has_more": has_more,
         "total": total
     }
-    all_tmdb_files_cache[cache_key] = response_data
+    all_tmdb_files_cache.set(cache_key, response_data)
 
     return JSONResponse(response_data)

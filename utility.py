@@ -205,9 +205,6 @@ async def invalidate_channel_cache(channel_id):
     for k in keys_to_delete:
         del channel_files_cache[k]
 
-async def invalidate_all_tmdb_cache():
-    """Clear the all_tmdb_files_cache (used for /api/all-tmdb-files endpoint)."""
-    all_tmdb_files_cache.clear()
 
 async def remove_unwanted(input_string):
     # Use regex to match .mkv or .mp4 and everything that follows
@@ -362,7 +359,6 @@ async def file_queue_worker(bot):
         finally:
             file_queue.task_done()
             if file_queue.empty():
-                await invalidate_all_tmdb_cache()
                 # Notify when all files in the queue are processed
                 try:
                     await safe_api_call(
