@@ -20,7 +20,7 @@ from utility import (
     generate_token, shorten_url, get_token_link, extract_channel_and_msg_id,
     safe_api_call, get_allowed_channels, extract_file_info,
     delete_after_delay, queue_file_for_processing, file_queue_worker,
-    file_queue, extract_tmdb_link
+    file_queue, extract_tmdb_link, invalidate_all_tmdb_cache
 )
 from db import db, users_col, tokens_col, files_col, allowed_channels_col, auth_users_col
 from fast_api import api
@@ -263,7 +263,7 @@ async def delete_file_handler(client, message: Message):
                 {"files.channel_id": channel_id, "files.message_id": message_id},
                 {"$pull": {"files": {"channel_id": channel_id, "message_id": message_id}}}
             )
-            invalidate_all_tmdb_cache()
+            await invalidate_all_tmdb_cache()
             if result.modified_count:
                 await message.reply_text(f"✅ File ({channel_id}, {message_id}) deleted from database.")
             else:
