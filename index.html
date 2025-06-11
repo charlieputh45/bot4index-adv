@@ -174,6 +174,9 @@ let offset = 0;
 const limit = 10; // or 20 if you prefer
 let hasMore = true;
 let currentQuery = "";
+let currentCast = "";
+let currentDirector = "";
+let currentGenre = "";
 
 const posterGrid = document.getElementById('posterGrid');
 const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -370,6 +373,9 @@ async function loadAllTmdbFiles(reset=false) {
         url.searchParams.set("offset", offset);
         url.searchParams.set("limit", limit);
         if (currentQuery) url.searchParams.set("q", currentQuery);
+        if (currentCast) url.searchParams.set("cast", currentCast);
+        if (currentDirector) url.searchParams.set("director", currentDirector);
+        if (currentGenre) url.searchParams.set("genre", currentGenre);
 
         const resp = await fetch(url);
         if (!resp.ok) throw new Error("API error");
@@ -394,9 +400,11 @@ async function loadAllTmdbFiles(reset=false) {
 }
 
 async function searchByCastName(castName) {
-    // Optionally close the modal or show a loading indicator
     offset = 0;
-    currentQuery = ""; // clear other search
+    currentQuery = "";
+    currentCast = castName;
+    currentDirector = "";
+    currentGenre = "";
     posterGrid.innerHTML = "";
     loadingSpinner.style.display = 'block';
     loadMoreBtn.style.display = 'none';
@@ -425,6 +433,9 @@ async function searchByCastName(castName) {
 async function searchByDirectorName(directorName) {
     offset = 0;
     currentQuery = "";
+    currentCast = "";
+    currentDirector = directorName;
+    currentGenre = "";
     posterGrid.innerHTML = "";
     loadingSpinner.style.display = 'block';
     loadMoreBtn.style.display = 'none';
@@ -452,6 +463,9 @@ async function searchByDirectorName(directorName) {
 async function searchByGenre(genreName) {
     offset = 0;
     currentQuery = "";
+    currentCast = "";
+    currentDirector = "";
+    currentGenre = genreName;
     posterGrid.innerHTML = "";
     loadingSpinner.style.display = 'block';
     loadMoreBtn.style.display = 'none';
@@ -482,6 +496,9 @@ loadMoreBtn.addEventListener('click', () => {
 
 searchInput.addEventListener('input', () => {
     currentQuery = searchInput.value.trim();
+    currentCast = "";
+    currentDirector = "";
+    currentGenre = "";
     loadAllTmdbFiles(true);
 });
 

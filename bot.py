@@ -109,7 +109,7 @@ async def start_handler(client, message):
             await safe_api_call(message.reply_text("Invalid file link."))
             return
 
-        file_doc = files_col.find_one({"channel_id": channel_id, "message_id": msg_id})
+        file_doc = await files_col.find_one({"channel_id": channel_id, "message_id": msg_id})
         if not file_doc:
             await safe_api_call(message.reply_text("File not found."))
             return
@@ -131,7 +131,7 @@ async def start_handler(client, message):
         "👋 <b>Welcome!</b>\n\n"
         "I'm your friendly file access bot 🤖.\n"
         "To get started, use a valid <b>access link</b> to unlock files 🔑.\n\n"
-        "If you need help, contact the admin @tgflixcontactbot or use the menu below. 🚀"
+        "If you need help, contact the admin @tgflixcontactbot 🚀"
     ))
 
 @bot.on_message(filters.document | filters.video | filters.audio | filters.photo)
@@ -258,7 +258,7 @@ async def delete_file_handler(client, message: Message):
             return
 
         try:
-            result = files_col.update_one(
+            result = await files_col.update_one(
                 {"files.channel_id": channel_id, "files.message_id": message_id},
                 {"$pull": {"files": {"channel_id": channel_id, "message_id": message_id}}}
             )
@@ -286,8 +286,8 @@ async def delete_file_handler(client, message: Message):
             await message.reply_text("Usage: /delete tmdb tmdb_type tmdb_id or /delete tmdb tmdb_link")
             return
         try:
-            result = files_col.delete_one({"tmdb_type": tmdb_type, "tmdb_id": tmdb_id})
-            invalidate_all_tmdb_cache()
+            result = await files_col.delete_one({"tmdb_type": tmdb_type, "tmdb_id": tmdb_id})
+            await invalidate_all_tmdb_cache()
             if result.deleted_count:
                 await message.reply_text(f"✅ TMDB document ({tmdb_type}, {tmdb_id}) deleted from database.")
             else:

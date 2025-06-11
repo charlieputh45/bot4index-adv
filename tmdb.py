@@ -164,11 +164,15 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
             imdb_info = get_imdb_details(imdb_id)
             imdb_rating = imdb_info.get('rating')
             imdb_story = imdb_info.get('story')
+            imdb_genre = imdb_info.get('genre')  # <-- get genres from imdb
+        else:
+            imdb_genre = None
         title = data.get('title')
         rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
         language = data.get('original_language')
         genres = data.get('genres', [])
-        genre = ", ".join([g.get('name', '') for g in genres])
+        # Prefer imdb_genre if available, else TMDB genres
+        genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
         genre_tags = genre_to_tags(genre)
         release_date = (data.get('release_date', '')[:10] if data.get('release_date') else "")
         story = imdb_story or data.get('overview')
@@ -213,11 +217,15 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
             imdb_info = get_imdb_details(imdb_id)
             imdb_rating = imdb_info.get('rating')
             imdb_story = imdb_info.get('story')
+            imdb_genre = imdb_info.get('genre')  # <-- get genres from imdb
+        else:
+            imdb_genre = None
         title = data.get('name')
         rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
         language = data.get('original_language')
         genres = data.get('genres', [])
-        genre = ", ".join([g.get('name', '') for g in genres])
+        # Prefer imdb_genre if available, else TMDB genres
+        genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
         genre_tags = genre_to_tags(genre)
         release_date = (data.get('first_air_date', '')[:10] if data.get('first_air_date') else "")
         story = imdb_story or data.get('overview')
