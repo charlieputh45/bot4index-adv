@@ -408,7 +408,7 @@ async def stats_command(client, message: Message):
         total_auth_users = auth_users_col.count_documents({})
         total_users = users_col.count_documents({})
         total_files = files_col.count_documents({})
-        stats = db.command("dbstats")
+        stats = await db.command("dbstats")  # <-- await here
         db_storage = stats.get("storageSize", 0)
 
         await safe_api_call(
