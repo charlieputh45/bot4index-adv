@@ -53,13 +53,16 @@ async def api_all_tmdb_files(
     cast: str = "",
     director: str = "",
     genre: str = "",
+    tmdb_type: str = "",  # <-- Add this
     offset: int = 0,
-    limit: int = 10
+    limit: int = 10,
+    sort: str = "date",   # <-- Add this
+    order: str = "desc"   # <-- Add this
 ):
     """
-    Return TMDB entries with their files, sorted by release_date descending, paginated, and filtered by search query or cast.
+    Return TMDB entries with their files, sorted and filtered.
     """
-    cache_key = f"{q}:{cast}:{director}:{genre}:{offset}:{limit}"
+    cache_key = f"{q}:{cast}:{director}:{genre}:{tmdb_type}:{offset}:{limit}:{sort}:{order}"
     cached = all_tmdb_files_cache.get(cache_key)
     if cached:
         return JSONResponse(cached)
@@ -74,8 +77,13 @@ async def api_all_tmdb_files(
         query["directors.name"] = {"$regex": director, "$options": "i"}
     if genre:
         query["genre"] = {"$regex": genre, "$options": "i"}
+    if tmdb_type:
+        query["tmdb_type"] = tmdb_type
 
-    cursor = files_col.find(query, {"_id": 0}).sort("date", -1).skip(offset).limit(limit)
+    sort_field = "date" if sort not in ["rating", "date"] else sort
+    sort_order = -1 if order == "desc" else 1
+
+    cursor = files_col.find(query, {"_id": 0}).sort(sort_field, sort_order).skip(offset).limit(limit)
     tmdb_entries = await cursor.to_list(length=limit)
 
     def serialize_file(file):

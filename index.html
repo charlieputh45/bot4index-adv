@@ -291,6 +291,11 @@
             <span class="genre-pill" onclick="searchByGenre('War')">War</span>
             <span class="genre-pill" onclick="searchByGenre('Western')">Western</span>
         </div>
+        <div class="d-flex flex-wrap gap-2 mb-3" id="filterBar">
+            <button class="btn btn-outline-warning btn-sm" id="topRatedBtn">Top Rated</button>
+            <button class="btn btn-outline-info btn-sm" id="movieBtn">Movies</button>
+            <button class="btn btn-outline-info btn-sm" id="tvBtn">TV Shows</button>
+        </div>
         <div class="mb-4 d-flex justify-content-center">
             <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by title...">
         </div>
@@ -337,6 +342,9 @@
         let currentCast = "";
         let currentDirector = "";
         let currentGenre = "";
+        let currentSort = "date";
+        let currentOrder = "desc";
+        let currentType = ""; // "Movie" or "TV"
 
         const posterGrid = document.getElementById('posterGrid');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -389,6 +397,20 @@
                     el.classList.add('active');
                 } else {
                     el.classList.remove('active');
+                }
+            });
+            setActiveFilterBtn(""); // Remove highlight from filter buttons
+        }
+
+        function setActiveFilterBtn(btnId) {
+            ['topRatedBtn', 'movieBtn', 'tvBtn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    if (id === btnId) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
                 }
             });
         }
@@ -555,6 +577,9 @@
                 if (currentCast) url.searchParams.set("cast", currentCast);
                 if (currentDirector) url.searchParams.set("director", currentDirector);
                 if (currentGenre) url.searchParams.set("genre", currentGenre);
+                if (currentType) url.searchParams.set("tmdb_type", currentType);
+                if (currentSort) url.searchParams.set("sort", currentSort);
+                if (currentOrder) url.searchParams.set("order", currentOrder);
 
                 const resp = await fetch(url);
                 if (!resp.ok) throw new Error("API error");
@@ -681,11 +706,39 @@
             currentDirector = "";
             currentGenre = "";
             setActiveGenre("");
+            setActiveFilterBtn("");
             loadAllTmdbFiles(true);
         });
 
         loadMoreBtn.addEventListener('click', () => {
             loadAllTmdbFiles(false);
+        });
+
+        document.getElementById('topRatedBtn').addEventListener('click', () => {
+            currentSort = "rating";
+            currentOrder = "desc";
+            currentType = "";
+            setActiveGenre("");
+            setActiveFilterBtn('topRatedBtn');
+            loadAllTmdbFiles(true);
+        });
+
+        document.getElementById('movieBtn').addEventListener('click', () => {
+            currentType = "Movie";
+            currentSort = "date";
+            currentOrder = "desc";
+            setActiveGenre("");
+            setActiveFilterBtn('movieBtn');
+            loadAllTmdbFiles(true);
+        });
+
+        document.getElementById('tvBtn').addEventListener('click', () => {
+            currentType = "TV";
+            currentSort = "date";
+            currentOrder = "desc";
+            setActiveGenre("");
+            setActiveFilterBtn('tvBtn');
+            loadAllTmdbFiles(true);
         });
 
         window.addEventListener('DOMContentLoaded', () => {
