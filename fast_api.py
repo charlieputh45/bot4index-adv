@@ -83,7 +83,7 @@ async def api_all_tmdb_files(
     sort_field = "date" if sort not in ["rating", "date"] else sort
     sort_order = -1 if order == "desc" else 1
 
-    cursor = files_col.find(query, {"_id": 0}).sort(sort_field, sort_order).skip(offset).limit(limit)
+    cursor = files_col.find(query, {"_id": 0}).sort("rating", -1).skip(offset).limit(limit)
     tmdb_entries = await cursor.to_list(length=limit)
 
     def serialize_file(file):
