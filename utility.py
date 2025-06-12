@@ -326,23 +326,7 @@ async def file_queue_worker(bot):
                         title, release_year, season, episode = await extract_movie_info(file_info["file_name"])
                         result = await get_by_name(title, release_year)
                         tmdb_id, tmdb_type = result['id'], result['media_type'] 
-                        tmdb_info = await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, episode)
-                        if tmdb_info:
-                                poster_url = tmdb_info.get('poster_url')
-                                trailer = tmdb_info.get('trailer_url')
-                                info = tmdb_info.get('message')
-                                if poster_url:
-                                    keyboard = InlineKeyboardMarkup(
-                                        [[InlineKeyboardButton("🎥 Trailer", url=trailer)]]) if trailer else None
-                                    await safe_api_call(
-                                        bot.send_photo(
-                                            UPDATE_CHANNEL_ID,
-                                            photo=poster_url,
-                                            caption=info,
-                                            parse_mode=enums.ParseMode.HTML,
-                                            reply_markup=keyboard
-                                        )
-                                    )   
+                        await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, episode, bot)
                 except Exception as e:
                     logger.error(f"Error processing TMDB info:{e}")
                     if reply_func:
@@ -385,7 +369,7 @@ async def queue_file_for_processing(message, channel_id=None, reply_func=None):
         if reply_func:
             await safe_api_call(reply_func(f"❌ Error queuing file: {e}"))
 
-async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season=None, episode=None):
+async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, episode, bot):
     """
     Upserts a document by tmdb_id and tmdb_type, adding file_info to the files array.
     This is an asynchronous version using Motor.
@@ -407,6 +391,23 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season=None,
         },
         upsert=True
     )
+    
+    if tmdb_info:
+        poster_url = tmdb_info.get('poster_url')
+        trailer = tmdb_info.get('trailer_url')
+        info = tmdb_info.get('message')
+        if poster_url:
+            keyboard = InlineKeyboardMarkup(
+                [[InlineKeyboardButton("🎥 Trailer", url=trailer)]]) if trailer else None
+            await safe_api_call(
+                bot.send_photo(
+                    UPDATE_CHANNEL_ID,
+                    photo=poster_url,
+                    caption=info,
+                    parse_mode=enums.ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+            )   
 
-    return tmdb_info
+
 
