@@ -327,7 +327,7 @@ async def add_channel_handler(client, message: Message):
     try:
         channel_id = int(message.command[1])
         channel_name = " ".join(message.command[2:])
-        allowed_channels_col.update_one(
+        await allowed_channels_col.update_one(
             {"channel_id": channel_id},
             {"$set": {"channel_id": channel_id, "channel_name": channel_name}},
             upsert=True
@@ -347,7 +347,7 @@ async def remove_channel_handler(client, message: Message):
         return
     try:
         channel_id = int(message.command[1])
-        result = allowed_channels_col.delete_one({"channel_id": channel_id})
+        result = await allowed_channels_col.delete_one({"channel_id": channel_id})
         if result.deleted_count:
             await message.reply_text(f"✅ Channel {channel_id} removed from allowed channels.")
         else:
