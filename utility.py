@@ -375,27 +375,25 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, epis
     This is an asynchronous version using Motor.
     The 'message' field from tmdb_info is not saved to the database.
     """
-    tmdb_info = await get_tmdb_info_dict(tmdb_type, tmdb_id, season, episode)
-    if not tmdb_info:
+    info_dict, message, backdrop_url = await get_tmdb_info_dict(tmdb_type, tmdb_id, season, episode)
+    if not info_dict:
         return None
 
-    tmdb_info.pop('files', None)
-    tmdb_info_to_save = dict(tmdb_info)
-    tmdb_info_to_save.pop('message', None)  # Remove 'message' before saving
+    info_dict.pop('files', None)
 
     await files_col.update_one(
         {"tmdb_id": tmdb_id, "tmdb_type": tmdb_type},
         {
-            "$set": tmdb_info_to_save,
+            "$set": info_dict,
             "$addToSet": {"files": file_info}
         },
         upsert=True
     )
     
-    if tmdb_info:
-        poster_url = tmdb_info.get('poster_url')
-        trailer = tmdb_info.get('trailer_url')
-        info = tmdb_info.get('message')
+    if info_dict:
+        poster_url = backdrop_url
+        trailer = info_dict.get('trailer_url')
+        info = message
         if poster_url:
             keyboard = InlineKeyboardMarkup(
                 [[InlineKeyboardButton("🎥 Trailer", url=trailer)]]) if trailer else None

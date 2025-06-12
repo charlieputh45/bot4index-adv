@@ -2,47 +2,122 @@
 <html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>TG-INDEX</title>
+    <title>TG⚡️FLIX</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
     body {
-        background: #181a1b;
+        background: linear-gradient(135deg, #181a1b 0%, #23272b 100%);
         color: #e0e0e0;
+        font-family: 'Montserrat', Arial, sans-serif;
+        min-height: 100vh;
+    }
+    .navbar {
+        background: #181a1b;
+        border-bottom: 1px solid #23272b;
+        box-shadow: 0 2px 8px #0004;
+    }
+    .navbar-brand {
+        font-weight: 700;
+        font-size: 1.7rem;
+        letter-spacing: 2px;
+        color: #7da0fa !important;
     }
     .poster-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-        gap: 1.2rem;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
     }
     .poster-tile {
         background: #23272b;
-        border-radius: 1rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        border-radius: 1.2rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.18);
         overflow: hidden;
         cursor: pointer;
-        transition: box-shadow 0.2s, border-color 0.2s;
-        border: 2px solid transparent;
         position: relative;
-        padding: 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        transition: transform 0.18s, box-shadow 0.18s;
+        display: block;
+        padding: 0;
     }
     .poster-tile:hover {
-        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-        border-color: #0d6efd;
+        transform: scale(1.045);
+        box-shadow: 0 8px 32px #0d6efd44;
+        z-index: 2;
     }
     .poster-img {
         width: 100%;
-        height: auto;
-        object-fit: contain;
+        height: 320px;
+        object-fit: contain; /* was cover */
         background: #181a1b;
         display: block;
-        border-radius: 0.7rem;
-        max-height: 350px;
+        border-radius: 1.2rem 1.2rem 0 0;
+        transition: filter 0.2s;
     }
-    /* Remove .poster-title styling since it's not used */
+    .poster-tile:hover .poster-img {
+        filter: brightness(0.85) blur(1px);
+    }
+    .poster-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0; right: 0;
+        background: linear-gradient(0deg, #181a1be0 80%, #23272b00 100%);
+        color: #fff;
+        padding: 1.1rem 1rem 0.7rem 1rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+    .poster-tile:hover .poster-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .poster-title {
+        font-size: 1.13rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+        text-shadow: 0 2px 8px #000a;
+    }
+    .poster-meta {
+        font-size: 0.98rem;
+        color: #7da0fa;
+        margin-bottom: 0.1rem;
+    }
+    .poster-rating {
+        font-size: 1.05rem;
+        color: #ffd700;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    .genre-bar {
+        display: flex;
+        overflow-x: auto;
+        gap: 0.7rem;
+        padding: 0.7rem 0 0.7rem 0.2rem;
+        margin-bottom: 1.2rem;
+        scrollbar-width: thin;
+    }
+    .genre-pill {
+        background: #23272b;
+        color: #7da0fa;
+        border-radius: 2rem;
+        padding: 0.4em 1.2em;
+        font-size: 1em;
+        font-weight: 500;
+        border: 1px solid #7da0fa44;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+        white-space: nowrap;
+    }
+    .genre-pill:hover, .genre-pill.active {
+        background: #7da0fa;
+        color: #23272b;
+    }
     .modal-header, .modal-body, .modal-footer {
         background: #23272b;
         color: #fff;
@@ -61,6 +136,7 @@
         display: block;
         margin-left: auto;
         margin-right: auto;
+        box-shadow: 0 4px 24px #0006;
     }
     .file-card {
         background: #23272b;
@@ -69,7 +145,7 @@
         margin-bottom: 1rem;
         padding: 1rem 1.2rem;
         display: flex;
-        flex-direction: column;    /* Always vertical */
+        flex-direction: column;
         gap: 0.5rem;
         align-items: stretch;
         text-align: left;
@@ -93,12 +169,27 @@
     .file-name {
         font-weight: 600;
     }
+    .fade-in {
+        animation: fadeIn 0.7s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.97);}
+        to { opacity: 1; transform: scale(1);}
+    }
     @media (max-width: 576px) {
         .poster-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 0.7rem;
         }
-        .poster-img { max-height: 200px; }
+        .poster-img {
+            height: 180px;
+            max-height: 180px;
+            object-fit: contain; /* ensure on mobile too */
+        }
+        .poster-tile {
+            border-radius: 0.7rem;
+            padding: 0;
+        }
         .tmdb-poster-modal { max-width: 100%; }
         .file-card {
             padding: 0.7rem 0.5rem;
@@ -126,10 +217,35 @@
     </style>
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">TG⚡️FLIX</a>
+    <div class="d-flex align-items-center ms-auto">
+      <a href="nfiles.html" class="btn btn-outline-info btn-sm ms-2">Browse N Files</a>
+    </div>
+  </div>
+</nav>
 <div class="container py-4">
-    <h2 class="mb-4 text-center" id="channelTitle">TG⚡️FLIX</h2>
-    <div class="mb-3 text-center">
-        <a href="nfiles.html" class="btn btn-outline-info btn-sm">Browse N Files</a>
+    <!-- Genre bar (static, you can fill dynamically if you want) -->
+    <div class="genre-bar" id="genreBar">
+        <span class="genre-pill active" onclick="searchByGenre('')">All</span>
+        <span class="genre-pill" onclick="searchByGenre('Action')">Action</span>
+        <span class="genre-pill" onclick="searchByGenre('Drama')">Drama</span>
+        <span class="genre-pill" onclick="searchByGenre('Comedy')">Comedy</span>
+        <span class="genre-pill" onclick="searchByGenre('Thriller')">Thriller</span>
+        <span class="genre-pill" onclick="searchByGenre('Romance')">Romance</span>
+        <span class="genre-pill" onclick="searchByGenre('Sci-Fi')">Sci-Fi</span>
+        <span class="genre-pill" onclick="searchByGenre('Horror')">Horror</span>
+        <span class="genre-pill" onclick="searchByGenre('Animation')">Animation</span>
+        <span class="genre-pill" onclick="searchByGenre('Crime')">Crime</span>
+        <span class="genre-pill" onclick="searchByGenre('Adventure')">Adventure</span>
+        <span class="genre-pill" onclick="searchByGenre('Family')">Family</span>
+        <span class="genre-pill" onclick="searchByGenre('Fantasy')">Fantasy</span>
+        <span class="genre-pill" onclick="searchByGenre('Mystery')">Mystery</span>
+        <span class="genre-pill" onclick="searchByGenre('History')">History</span>
+        <span class="genre-pill" onclick="searchByGenre('Music')">Music</span>
+        <span class="genre-pill" onclick="searchByGenre('War')">War</span>
+        <span class="genre-pill" onclick="searchByGenre('Western')">Western</span>
     </div>
     <div class="mb-4 d-flex justify-content-center">
         <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by title...">
@@ -167,11 +283,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const apiBase = ""; // Change to your FastAPI server if needed
+const apiBase = ""; // Set your API base URL here
 let allTmdbResults = [];
-let filteredResults = [];
 let offset = 0;
-const limit = 10; // or 20 if you prefer
+const limit = 10;
 let hasMore = true;
 let currentQuery = "";
 let currentCast = "";
@@ -182,6 +297,7 @@ const posterGrid = document.getElementById('posterGrid');
 const loadMoreBtn = document.getElementById('loadMoreBtn');
 const loadingSpinner = document.getElementById('loadingSpinner');
 const searchInput = document.getElementById('searchInput');
+const genreBar = document.getElementById('genreBar');
 
 loadMoreBtn.disabled = true;
 
@@ -209,8 +325,26 @@ function renderPosters(results, append=false) {
         div.onclick = () => showTmdbModal(entry);
         div.innerHTML = `
             <img class="poster-img" src="${entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="Poster">
+            <div class="poster-overlay">
+                <div class="poster-title">${entry.title || ''}</div>
+                <div class="poster-meta">
+                    ${entry.release_date ? entry.release_date.slice(0, 4) : ''}
+                    ${entry.rating ? `<span class="poster-rating ms-2"><i class="bi bi-star-fill"></i> ${entry.rating}</span>` : ''}
+                </div>
+                <div class="poster-meta">${entry.genre ? entry.genre.split(',')[0] : ''}</div>
+            </div>
         `;
         posterGrid.appendChild(div);
+    });
+}
+
+function setActiveGenre(genreName) {
+    document.querySelectorAll('.genre-pill').forEach(el => {
+        if ((genreName === "" && el.textContent === "All") || el.textContent === genreName) {
+            el.classList.add('active');
+        } else {
+            el.classList.remove('active');
+        }
     });
 }
 
@@ -409,7 +543,6 @@ async function searchByCastName(castName) {
     loadingSpinner.style.display = 'block';
     loadMoreBtn.style.display = 'none';
     try {
-        // Query the backend for cast search
         const url = new URL(`${apiBase}/api/all-tmdb-files`);
         url.searchParams.set("offset", 0);
         url.searchParams.set("limit", limit);
@@ -470,6 +603,7 @@ async function searchByGenre(genreName) {
     currentCast = "";
     currentDirector = "";
     currentGenre = genreName;
+    setActiveGenre(genreName);
     posterGrid.innerHTML = "";
     loadingSpinner.style.display = 'block';
     loadMoreBtn.style.display = 'none';
@@ -477,7 +611,7 @@ async function searchByGenre(genreName) {
         const url = new URL(`${apiBase}/api/all-tmdb-files`);
         url.searchParams.set("offset", 0);
         url.searchParams.set("limit", limit);
-        url.searchParams.set("genre", genreName);
+        if (genreName) url.searchParams.set("genre", genreName);
 
         const resp = await fetch(url);
         if (!resp.ok) throw new Error("API error");
@@ -496,16 +630,17 @@ async function searchByGenre(genreName) {
     }
 }
 
-loadMoreBtn.addEventListener('click', () => {
-    loadAllTmdbFiles(false);
-});
-
 searchInput.addEventListener('input', () => {
     currentQuery = searchInput.value.trim();
     currentCast = "";
     currentDirector = "";
     currentGenre = "";
+    setActiveGenre("");
     loadAllTmdbFiles(true);
+});
+
+loadMoreBtn.addEventListener('click', () => {
+    loadAllTmdbFiles(false);
 });
 
 window.addEventListener('DOMContentLoaded', () => {

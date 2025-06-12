@@ -98,12 +98,13 @@ async def get_tv_imdb_id(tv_id):
 
 async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
     """
-    Fetch TMDB info, use IMDb only for rating and storyline, and return a dict for MongoDB storage and messaging.
+    Fetch TMDB info, use IMDb only for rating, language, and storyline, and return a dict for MongoDB storage and messaging.
     Includes trailer, poster, directors, stars, and a formatted message.
     """
     # --- Build URLs ---
     api_url = f"https://api.themoviedb.org/3/{tmdb_type}/{tmdb_id}?api_key={TMDB_API_KEY}&language=en-US"
     credits_url = f"https://api.themoviedb.org/3/{tmdb_type}/{tmdb_id}/credits?api_key={TMDB_API_KEY}&language=en-US"
+    image_url = f'https://api.themoviedb.org/3/{tmdb_type}/{tmdb_id}/images?api_key={TMDB_API_KEY}&language=en-US&include_image_language=en,hi'
     video_url = f"https://api.themoviedb.org/3/{tmdb_type}/{tmdb_id}/videos?api_key={TMDB_API_KEY}"
     # --- Fetch TMDB Data ---
     async with aiohttp.ClientSession() as session:
@@ -114,6 +115,8 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
                 credits = await resp.json()
             async with session.get(video_url) as resp:
                 video_data = await resp.json()
+            async with session.get(image_url) as resp:
+                image_data = await resp.json()
         except Exception as e:
             print(f"Error fetching TMDB data: {e}")
             return {}
@@ -128,6 +131,15 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
     # --- Extract Poster URL ---
     poster_path = data.get('poster_path')
     poster_url = f"{POSTER_BASE_URL}{poster_path}" if poster_path else None
+
+    # --- Extract backdrop URL ---
+    backdrop_path = data.get('backdrop_path', None)
+    if 'backdrops' in image_data and image_data['backdrops']:
+        backdrop_path = image_data['backdrops'][0]['file_path']
+    elif 'posters' in image_data and image_data['posters']:
+        backdrop_path = image_data['posters'][0]['file_path']
+    if backdrop_path:
+        backdrop_url = f"{POSTER_BASE_URL}{backdrop_path}" if backdrop_path else None
 
     # --- Extract Directors and Stars ---
     directors_list = []
@@ -154,9 +166,10 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
     directors_names = ", ".join([d["name"] for d in directors_list])
     stars_names = ", ".join([s["name"] for s in stars_list])
 
-    # --- IMDb Info (only for rating and story) ---
+    # --- IMDb Info (for rating, language, and story) ---
     imdb_rating = None
     imdb_story = None
+    imdb_language = None
 
     if tmdb_type == 'movie':
         imdb_id = data.get('imdb_id')
@@ -164,14 +177,16 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
             imdb_info = get_imdb_details(imdb_id)
             imdb_rating = imdb_info.get('rating')
             imdb_story = imdb_info.get('story')
-            imdb_genre = imdb_info.get('genre')  # <-- get genres from imdb
+            imdb_genre = imdb_info.get('genre')
+            imdb_language = imdb_info.get('language')
         else:
             imdb_genre = None
+            imdb_language = None
         title = data.get('title')
         rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
-        language = data.get('original_language')
+        # Prefer imdb_language if available, else TMDB language
+        language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
-        # Prefer imdb_genre if available, else TMDB genres
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
         genre_tags = genre_to_tags(genre)
         release_date = (data.get('release_date', '')[:10] if data.get('release_date') else "")
@@ -217,14 +232,15 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
             imdb_info = get_imdb_details(imdb_id)
             imdb_rating = imdb_info.get('rating')
             imdb_story = imdb_info.get('story')
-            imdb_genre = imdb_info.get('genre')  # <-- get genres from imdb
+            imdb_genre = imdb_info.get('genre')
+            imdb_language = imdb_info.get('language')
         else:
             imdb_genre = None
+            imdb_language = None
         title = data.get('name')
         rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
-        language = data.get('original_language')
+        language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
-        # Prefer imdb_genre if available, else TMDB genres
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
         genre_tags = genre_to_tags(genre)
         release_date = (data.get('first_air_date', '')[:10] if data.get('first_air_date') else "")
@@ -266,7 +282,7 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
         return {}
 
     # --- Return All Info ---
-    return {
+    info_dict = {
         "tmdb_id": tmdb_id,
         "tmdb_type": tmdb_type,
         "title": title,
@@ -279,8 +295,9 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
         "stars": stars_list,
         "trailer_url": trailer_url,
         "poster_url": poster_url,
-        "message": message.strip()
     }
+
+    return info_dict, message.strip(), backdrop_url
 
 async def get_by_name(movie_name, release_year):
     tmdb_search_url = f'https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={movie_name}'
