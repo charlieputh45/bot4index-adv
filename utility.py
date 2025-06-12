@@ -344,17 +344,17 @@ async def file_queue_worker(bot):
             file_queue.task_done()
             if file_queue.empty():
                 if processing_count > 1:
-                # Notify only if more than one file was processed
-                try:
-                    await safe_api_call(
-                        bot.send_message(
-                            LOG_CHANNEL_ID,
-                            f"✅ Done processing {processing_count} file(s) in the queue.",
-                            parse_mode=enums.ParseMode.HTML
+                    # Notify only if more than one file was processed
+                    try:
+                        await safe_api_call(
+                            bot.send_message(
+                                LOG_CHANNEL_ID,
+                                f"✅ Done processing {processing_count} file(s) in the queue.",
+                                parse_mode=enums.ParseMode.HTML
+                            )
                         )
-                    )
-                except Exception:
-                    pass
+                    except Exception:
+                        pass
             processing_count = 0  # Reset for next batch
 
 # =========================
@@ -406,7 +406,7 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, epis
                     parse_mode=enums.ParseMode.HTML,
                     reply_markup=keyboard
                 )
-            )   
+            )
 
 
 
