@@ -355,13 +355,13 @@ async def file_queue_worker(bot):
                     )
                 except Exception:
                     pass
-             processing_count = 0  # Reset for next batch
+            processing_count = 0  # Reset for next batch
 
 # =========================
 # Unified File Queueing
 # =========================
 
-async def queue_file_for_processing(message, channel_id=None, reply_funone):
+async def queue_file_for_processing(message, channel_id=None, reply_func=None):
     try:
         file_info = await extract_file_info(message, channel_id=channel_id)
         if file_info["file_name"]:
