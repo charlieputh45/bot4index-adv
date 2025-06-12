@@ -183,8 +183,16 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
             imdb_genre = None
             imdb_language = None
         title = data.get('title')
-        rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
-        # Prefer imdb_language if available, else TMDB language
+        # Ensure rating is a number (float) or None
+        if imdb_rating is not None:
+            try:
+                rating = float(imdb_rating)
+            except Exception:
+                rating = None
+        elif data.get('vote_average') is not None:
+            rating = float(data.get('vote_average'))
+        else:
+            rating = None
         language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
@@ -208,7 +216,7 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
 
         # Build the message
         message = f"<b>🏷️Title:</b> {title}\n"
-        if rating:
+        if rating is not None:
             message += f"<b>🌟Rating:</b> {rating} / 10\n"
         if duration_fmt:
             message += f"<b>⏳️Duration:</b> {duration_fmt}\n"
@@ -238,7 +246,16 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
             imdb_genre = None
             imdb_language = None
         title = data.get('name')
-        rating = imdb_rating or (f"{data.get('vote_average', 0):.1f}" if data.get('vote_average') is not None else None)
+        # Ensure rating is a number (float) or None
+        if imdb_rating is not None:
+            try:
+                rating = float(imdb_rating)
+            except Exception:
+                rating = None
+        elif data.get('vote_average') is not None:
+            rating = float(data.get('vote_average'))
+        else:
+            rating = None
         language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
@@ -258,7 +275,7 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
             release_date_fmt = release_date
 
         message = f"<b>🏷️Title:</b> {title}\n"
-        if rating:
+        if rating is not None:
             message += f"<b>🌟Rating:</b> {rating} / 10\n"
         if language:
             message += f"<b>🅰️Language:</b> {language}\n"
