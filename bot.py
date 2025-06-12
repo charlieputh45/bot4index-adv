@@ -84,8 +84,7 @@ async def start_handler(client, message):
             token_id = token_doc["token_id"] if token_doc else await generate_token(user_id)
             short_link = shorten_url(get_token_link(token_id, bot_username))
             await safe_api_call(message.reply_text(
-                "🔒 <b>Access Restricted</b>\n\n"
-                "You are <b>not authorized</b>",
+                "🔒<b>You Are Not Authorized</b>",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🔑 Get Access Link", url=short_link)]]
                 )
