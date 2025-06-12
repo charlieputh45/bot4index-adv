@@ -193,6 +193,9 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
             rating = float(data.get('vote_average'))
         else:
             rating = None
+        # Format rating to one digit after decimal if not None
+        if rating is not None:
+            rating = f"{rating:.1f}"
         language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
@@ -256,6 +259,9 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id):
             rating = float(data.get('vote_average'))
         else:
             rating = None
+        # Format rating to one digit after decimal if not None
+        if rating is not None:
+            rating = f"{rating:.1f}"
         language = imdb_language or data.get('original_language')
         genres = data.get('genres', [])
         genre = imdb_genre or ", ".join([g.get('name', '') for g in genres])
