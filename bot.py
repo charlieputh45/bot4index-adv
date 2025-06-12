@@ -469,7 +469,8 @@ async def tmdb_command(client, message):
             tmdb_type,
             tmdb_id,
             season,
-            episode
+            episode,
+            bot
         )
         await safe_api_call(message.reply_text("✅ File updated with TMDB info."))
     except Exception as e:
