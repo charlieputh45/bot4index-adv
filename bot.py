@@ -465,7 +465,7 @@ async def tmdb_command(client, message):
 
     # Now update the file doc with TMDB info
     try:
-        upsert_file_with_tmdb_info(file_info,
+        await upsert_file_with_tmdb_info(file_info,
             tmdb_type,
             tmdb_id,
             season,
