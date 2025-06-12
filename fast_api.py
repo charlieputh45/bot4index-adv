@@ -4,27 +4,28 @@ from fastapi.responses import JSONResponse
 from db import allowed_channels_col, files_col, n_files_col
 from config import BOT_USERNAME, MY_DOMAIN
 from utility import generate_telegram_link
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict
 
 CACHE_TTL_SECONDS = 300  # 5 minutes
 
 class ExpiringCache:
-    def __init__(self, ttl_seconds):
+    def __init__(self, ttl_seconds: int):
         self.ttl = ttl_seconds
-        self._cache = {}
+        self._cache: Dict[str, Any] = {}
 
-    def get(self, key):
+    def get(self, key: str):
         entry = self._cache.get(key)
         if not entry:
             return None
         value, expires_at = entry
-        if datetime.utcnow() > expires_at:
+        if datetime.now(timezone.utc) > expires_at:
             del self._cache[key]
             return None
         return value
 
-    def set(self, key, value):
-        expires_at = datetime.utcnow() + timedelta(seconds=self.ttl)
+    def set(self, key: str, value: Any):
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl)
         self._cache[key] = (value, expires_at)
 
     def clear(self):
@@ -41,7 +42,7 @@ api.add_middleware(
     allow_headers=["*"],
 )
 
-def build_query(params: dict, search_fields: dict):
+def build_query(params: dict, search_fields: dict) -> dict:
     """
     Build a MongoDB query dict from params and search_fields mapping.
     search_fields: {param_name: (db_field, regex_search: bool)}
@@ -51,30 +52,32 @@ def build_query(params: dict, search_fields: dict):
         value = params.get(param, "")
         if value:
             if use_regex:
-                regex = ".*".join(map(lambda s: s, value.strip().split()))
+                regex = ".*".join(map(str, value.strip().split()))
                 query[db_field] = {"$regex": regex, "$options": "i"}
             else:
                 query[db_field] = value
     return query
 
-def serialize_file(file):
+# --- Serialization Helpers ---
+
+def serialize_file(file: dict) -> dict:
+    date_val = file.get("date")
     return {
         "file_name": file.get("file_name"),
         "file_size": file.get("file_size"),
         "file_format": file.get("file_format"),
-        "date": file.get("date").strftime('%Y-%m-%d %H:%M:%S') if isinstance(file.get("date"), datetime) else file.get("date", ""),
+        "date": date_val.strftime('%Y-%m-%d %H:%M:%S') if isinstance(date_val, datetime) else date_val or "",
         "telegram_link": file.get("telegram_link"),
         "channel_id": file.get("channel_id"),
         "message_id": file.get("message_id"),
     }
 
-def serialize_tmdb_entry(entry):
-    bot_username = BOT_USERNAME
+def serialize_tmdb_entry(entry: dict) -> dict:
     files = entry.get("files", [])
     for file in files:
         if not file.get("telegram_link"):
             file["telegram_link"] = generate_telegram_link(
-                bot_username, file.get("channel_id"), file.get("message_id")
+                BOT_USERNAME, file.get("channel_id"), file.get("message_id")
             )
     return {
         "tmdb_id": entry.get("tmdb_id"),
@@ -92,22 +95,30 @@ def serialize_tmdb_entry(entry):
         "files": [serialize_file(f) for f in files]
     }
 
-def serialize_n_file(file):
-    bot_username = BOT_USERNAME
-    telegram_link = generate_telegram_link(
-        bot_username, file.get("channel_id"), file.get("message_id")
-    )
+def serialize_n_file(file: dict) -> dict:
+    date_val = file.get("date")
     return {
         "file_name": file.get("file_name"),
         "file_size": file.get("file_size"),
         "file_format": file.get("file_format"),
-        "date": file.get("date").strftime('%Y-%m-%d %H:%M:%S') if isinstance(file.get("date"), datetime) else file.get("date", ""),
-        "telegram_link": telegram_link,
+        "date": date_val.strftime('%Y-%m-%d %H:%M:%S') if isinstance(date_val, datetime) else date_val or "",
+        "telegram_link": generate_telegram_link(
+            BOT_USERNAME, file.get("channel_id"), file.get("message_id")
+        ),
         "channel_id": file.get("channel_id"),
         "message_id": file.get("message_id"),
         "ss_url": file.get("ss_url", ""),
         "thumb_url": file.get("thumb_url", "")
     }
+
+def make_cache_key(*args, **kwargs) -> str:
+    """Create a cache key from args and kwargs."""
+    key = ":".join(map(str, args))
+    if kwargs:
+        key += ":" + ":".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
+    return key
+
+# --- API Endpoints ---
 
 @api.get("/")
 async def root():
@@ -128,7 +139,7 @@ async def api_all_tmdb_files(
     """
     Return TMDB entries with their files, sorted and filtered.
     """
-    cache_key = f"{q}:{cast}:{director}:{genre}:{tmdb_type}:{offset}:{limit}:{sort}:{order}"
+    cache_key = make_cache_key(q, cast, director, genre, tmdb_type, offset, limit, sort, order)
     cached = all_tmdb_files_cache.get(cache_key)
     if cached:
         return JSONResponse(cached)
@@ -144,7 +155,7 @@ async def api_all_tmdb_files(
     query = build_query(params, search_fields)
 
     sort_field = "_id" if sort not in ["rating", "_id"] else sort
-    sort_order = -1
+    sort_order = -1 if order == "desc" else 1
 
     cursor = files_col.find(query, {"_id": 0}).sort(sort_field, sort_order).skip(offset).limit(limit)
     tmdb_entries = await cursor.to_list(length=limit)
@@ -169,7 +180,7 @@ async def api_all_n_files(
     """
     Return entries from n_files_col, paginated and filtered by search query.
     """
-    cache_key = f"nfiles:{q}:{offset}:{limit}"
+    cache_key = make_cache_key("nfiles", q, offset, limit)
     cached = all_tmdb_files_cache.get(cache_key)
     if cached:
         return JSONResponse(cached)

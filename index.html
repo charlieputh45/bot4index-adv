@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-
 <head>
     <meta charset="UTF-8">
     <title>TG⚡️FLIX</title>
@@ -14,26 +13,22 @@
             font-family: 'Montserrat', Arial, sans-serif;
             min-height: 100vh;
         }
-
         .navbar {
             background: #181a1b;
             border-bottom: 1px solid #23272b;
             box-shadow: 0 2px 8px #0004;
         }
-
         .navbar-brand {
             font-weight: 700;
             font-size: 1.7rem;
             letter-spacing: 2px;
             color: #7da0fa !important;
         }
-
         .poster-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.2rem;
         }
-
         .poster-tile {
             background: #23272b;
             border-radius: 1rem;
@@ -46,28 +41,23 @@
             padding: 0.5rem;
             border: 2px solid transparent;
         }
-
         .poster-tile:hover {
             transform: scale(1.045);
             box-shadow: 0 8px 32px #0d6efd44;
             z-index: 2;
         }
-
         .poster-img {
             width: 100%;
             height: auto;
             object-fit: contain;
-            /* was cover */
             background: #181a1b;
             display: block;
             border-radius: 0.7rem;
             max-height: 350px;
         }
-
         .poster-tile:hover .poster-img {
             filter: brightness(0.85) blur(1px);
         }
-
         .poster-overlay {
             position: absolute;
             bottom: 0;
@@ -84,32 +74,27 @@
             flex-direction: column;
             justify-content: flex-end;
         }
-
         .poster-tile:hover .poster-overlay {
             opacity: 1;
             pointer-events: auto;
         }
-
         .poster-title {
             font-size: 1.13rem;
             font-weight: 700;
             margin-bottom: 0.2rem;
             text-shadow: 0 2px 8px #000a;
         }
-
         .poster-meta {
             font-size: 0.98rem;
             color: #7da0fa;
             margin-bottom: 0.1rem;
         }
-
         .poster-rating {
             font-size: 1.05rem;
             color: #ffd700;
             font-weight: 600;
             margin-left: 0.5rem;
         }
-
         .genre-bar {
             display: flex;
             overflow-x: auto;
@@ -118,7 +103,6 @@
             margin-bottom: 1.2rem;
             scrollbar-width: thin;
         }
-
         .genre-pill {
             background: #23272b;
             color: #7da0fa;
@@ -131,13 +115,11 @@
             transition: background 0.18s, color 0.18s;
             white-space: nowrap;
         }
-
         .genre-pill:hover,
         .genre-pill.active {
             background: #7da0fa;
             color: #23272b;
         }
-
         .modal-header,
         .modal-body,
         .modal-footer {
@@ -145,13 +127,11 @@
             color: #fff;
             text-align: center;
         }
-
         .tmdb-meta {
             font-size: 0.98rem;
             margin-bottom: 0.5rem;
             text-align: center;
         }
-
         .tmdb-poster-modal {
             width: 100%;
             max-width: 220px;
@@ -161,7 +141,6 @@
             margin-left: auto;
             margin-right: auto;
         }
-
         .file-card {
             background: #23272b;
             border-radius: 0.7rem;
@@ -174,103 +153,96 @@
             align-items: stretch;
             text-align: left;
         }
-
         .file-info-block {
             min-width: 0;
             margin-bottom: 0.2rem;
             word-break: break-all;
         }
-
         .file-label {
             font-size: 0.93em;
             color: #7da0fa;
             margin-bottom: 0.1em;
             font-weight: 500;
         }
-
         .file-value {
             color: #e0e0e0;
             font-size: 1em;
             word-break: break-all;
         }
-
         .file-name {
             font-weight: 600;
         }
-
         .fade-in {
             animation: fadeIn 0.7s;
         }
-
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.97);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.97);}
+            to { opacity: 1; transform: scale(1);}
         }
-
+        .profile-card-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .profile-card {
+            background: #23272b;
+            border-radius: 0.7rem;
+            box-shadow: 0 2px 8px #0004;
+            width: 90px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+        }
+        .profile-card:hover {
+            background: #7da0fa;
+            color: #181818;
+            box-shadow: 0 4px 16px #7da0fa44;
+        }
+        .profile-img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            background: #23272b;
+            border-radius: 0.7rem 0.7rem 0 0;
+            display: block;
+        }
+        .profile-name {
+            font-size: 0.95rem;
+            color: inherit;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 600;
+            width: 100%;
+            text-align: center;
+            padding: 0.4em 0.2em 0.5em 0.2em;
+            background: none;
+        }
         @media (max-width: 576px) {
-            .poster-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.7rem;
-            }
-
-            .poster-img {
-                max-height: 200px;
-            }
-
-            /* .poster-tile { border-radius: 0.7rem; padding: 0; }  <-- REMOVE THIS LINE */
-            .tmdb-poster-modal {
-                max-width: 100%;
-            }
-
-            .file-card {
-                padding: 0.7rem 0.5rem;
-            }
-
-            .file-info-block {
-                margin-bottom: 0.2rem;
-            }
+            .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem;}
+            .poster-img { max-height: 200px;}
+            .tmdb-poster-modal { max-width: 100%;}
+            .file-card { padding: 0.7rem 0.5rem;}
+            .profile-card { width: 60px;}
         }
-
         @media (max-width: 768px) {
-
-            .file-card {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-                padding: 0.7rem 0.5rem;
-            }
-
-            .file-info-block {
-                min-width: 0;
-                margin-bottom: 0.2rem;
-            }
-        }
-
-        .tmdb-meta .rounded {
-            border-radius: 0.5rem !important;
-            background: #181a1b;
+            .file-card { flex-direction: column; align-items: stretch; text-align: center; padding: 0.7rem 0.5rem;}
         }
     </style>
 </head>
-
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">TG⚡️FLIX</a>
-            <div class="d-flex align-items-center ms-auto">
-                <a href="nfiles.html" class="btn btn-outline-info btn-sm ms-2">Browse N Files</a>
-            </div>
         </div>
     </nav>
     <div class="container py-4">
-        <!-- Genre bar (static, you can fill dynamically if you want) -->
         <div class="genre-bar" id="genreBar">
             <span class="genre-pill active" onclick="searchByGenre('')">All</span>
             <span class="genre-pill" onclick="searchByGenre('Action')">Action</span>
@@ -291,11 +263,6 @@
             <span class="genre-pill" onclick="searchByGenre('War')">War</span>
             <span class="genre-pill" onclick="searchByGenre('Western')">Western</span>
         </div>
-        <div class="d-flex flex-wrap gap-2 mb-3" id="filterBar">
-            <button class="btn btn-outline-warning btn-sm" id="topRatedBtn">Top Rated</button>
-            <button class="btn btn-outline-info btn-sm" id="movieBtn">Movies</button>
-            <button class="btn btn-outline-info btn-sm" id="tvBtn">TV Shows</button>
-        </div>
         <div class="mb-4 d-flex justify-content-center">
             <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by title...">
         </div>
@@ -307,7 +274,6 @@
             <div id="loadingSpinner" class="spinner-border text-primary" style="display:none" role="status"></div>
         </div>
     </div>
-
     <!-- Modal -->
     <div class="modal fade" id="tmdbModal" tabindex="-1" aria-labelledby="tmdbModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -330,10 +296,9 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const apiBase = ""; // Set your API base URL here
+        const apiBase = "https://wonderful-martha-hrdex-f37760c8.koyeb.app";
         let allTmdbResults = [];
         let offset = 0;
         const limit = 10;
@@ -342,9 +307,6 @@
         let currentCast = "";
         let currentDirector = "";
         let currentGenre = "";
-        let currentSort = "_id";
-        let currentOrder = "desc";
-        let currentType = ""; // "Movie" or "TV"
 
         const posterGrid = document.getElementById('posterGrid');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -367,9 +329,16 @@
             return bytes.toFixed(1) + ' ' + units[u];
         }
 
+        function getGenres(entry) {
+            if (Array.isArray(entry.genre)) return entry.genre;
+            if (typeof entry.genre === "string") return entry.genre.split(',').map(g => g.trim()).filter(Boolean);
+            return [];
+        }
+
         function renderPosters(results, append = false) {
             if (!append) posterGrid.innerHTML = "";
             results.forEach((entry, idx) => {
+                const genres = getGenres(entry);
                 const div = document.createElement('div');
                 div.className = 'poster-tile fade-in';
                 div.tabIndex = 0;
@@ -377,16 +346,16 @@
                 div.setAttribute('aria-label', entry.title || "Poster");
                 div.onclick = () => showTmdbModal(entry);
                 div.innerHTML = `
-            <img class="poster-img" src="${entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="Poster">
-            <div class="poster-overlay">
-                <div class="poster-title">${entry.title || ''}</div>
-                <div class="poster-meta">
-                    ${entry.release_date ? entry.release_date.slice(0, 4) : ''}
-                    ${entry.rating ? `<span class="poster-rating ms-2"><i class="bi bi-star-fill"></i> ${entry.rating}</span>` : ''}
-                </div>
-                <div class="poster-meta">${entry.genre ? entry.genre.split(',')[0] : ''}</div>
-            </div>
-        `;
+                    <img class="poster-img" src="${entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="Poster">
+                    <div class="poster-overlay">
+                        <div class="poster-title">${entry.title || ''}</div>
+                        <div class="poster-meta">
+                            ${entry.release_date ? entry.release_date.slice(0, 4) : ''}
+                            ${entry.rating ? `<span class="poster-rating ms-2">${entry.rating}</span>` : ''}
+                        </div>
+                        <div class="poster-meta">${genres.length ? genres[0] : ''}</div>
+                    </div>
+                `;
                 posterGrid.appendChild(div);
             });
         }
@@ -399,164 +368,97 @@
                     el.classList.remove('active');
                 }
             });
-            setActiveFilterBtn(""); // Remove highlight from filter buttons
-        }
-
-        function setActiveFilterBtn(btnId) {
-            ['topRatedBtn', 'movieBtn', 'tvBtn'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    if (id === btnId) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                }
-            });
         }
 
         function showTmdbModal(entry) {
-            // Helper to render only TMDB info and Get Files button
-            function renderTmdbInfo() {
-                document.getElementById('tmdbModalLabel').textContent = entry.title || '';
-                document.getElementById('modalPoster').src = entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg';
+            document.getElementById('tmdbModalLabel').textContent = entry.title || '';
+            document.getElementById('modalPoster').src = entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg';
 
-                // Director profiles
-                let directorHtml = "";
-                if (entry.directors && entry.directors.length) {
-                    directorHtml = `<div class="tmdb-meta"><strong>Directors:</strong><div class="d-flex flex-wrap justify-content-center gap-2 mt-2">`;
-                    entry.directors.forEach(director => {
-                        directorHtml += `
-                    <div class="text-center director-profile" style="width:80px;cursor:pointer;" data-director="${encodeURIComponent(director.name)}">
-                        <img src="${director.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${director.name}" class="rounded mb-1" style="width:60px;height:90px;object-fit:cover;box-shadow:0 1px 4px #0002;">
-                        <div style="font-size:0.93em;word-break:break-word;">${director.name}</div>
-                    </div>
-                `;
-                    });
-                    directorHtml += `</div></div>`;
-                }
-
-                // Cast profiles
-                let castHtml = "";
-                if (entry.stars && entry.stars.length) {
-                    castHtml = `<div class="tmdb-meta"><strong>Stars:</strong><div class="d-flex flex-wrap justify-content-center gap-2 mt-2">`;
-                    entry.stars.forEach(star => {
-                        castHtml += `
-                    <div class="text-center cast-profile" style="width:80px;cursor:pointer;" data-cast="${encodeURIComponent(star.name)}">
-                        <img src="${star.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${star.name}" class="rounded mb-1" style="width:60px;height:90px;object-fit:cover;box-shadow:0 1px 4px #0002;">
-                        <div style="font-size:0.93em;word-break:break-word;">${star.name}</div>
-                    </div>
-                `;
-                    });
-                    castHtml += `</div></div>`;
-                }
-
-                // Genre tags (clickable)
-                let genreHtml = "";
-                if (entry.genre) {
-                    const genres = entry.genre.split(',').map(g => g.trim()).filter(Boolean);
-                    genreHtml = `<div class="tmdb-meta"><strong>Genre:</strong> `;
-                    genres.forEach(genre => {
-                        genreHtml += `<span class="badge bg-info text-dark genre-badge" style="cursor:pointer;margin:0 2px;" data-genre="${encodeURIComponent(genre)}">${genre}</span>`;
-                    });
-                    genreHtml += `</div>`;
-                }
-
-                document.getElementById('modalMeta').innerHTML = `
-            <div class="tmdb-meta"><strong>Type:</strong> ${entry.tmdb_type || ''}</div>
-            <div class="tmdb-meta"><strong>Rating:</strong> ${entry.rating || ''}/10</div>
-            <div class="tmdb-meta"><strong>Language:</strong> ${entry.language || ''}</div>
-            ${genreHtml}
-            <div class="tmdb-meta"><strong>Release Date:</strong> ${entry.release_date || ''}</div>
-            ${directorHtml}
-            ${castHtml}
-            ${entry.trailer_url ? `<div class="tmdb-meta"><a href="${entry.trailer_url}" target="_blank" class="btn btn-outline-info btn-sm mt-1">Watch Trailer</a></div>` : ""}
-        `;
-                document.getElementById('modalStory').innerHTML = entry.story ? `<div><strong>Story:</strong> ${entry.story}</div>` : "";
-                document.getElementById('modalFiles').innerHTML = `
-            <div class="d-flex justify-content-center">
-                <button id="getFilesBtn" class="btn btn-primary mt-2">Get Files</button>
-            </div>
-        `;
-                document.getElementById('getFilesBtn').onclick = renderFilesInfo;
-
-                // Cast click handler
-                document.querySelectorAll('.cast-profile').forEach(el => {
-                    el.onclick = function () {
-                        const castName = decodeURIComponent(this.getAttribute('data-cast'));
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('tmdbModal')).hide();
-                        searchByCastName(castName);
-                    };
+            // Director cards
+            let directorHtml = "";
+            if (entry.directors && entry.directors.length) {
+                directorHtml = `<div class="tmdb-meta"><strong>Directors:</strong><div class="profile-card-row">`;
+                entry.directors.forEach(director => {
+                    directorHtml += `
+                        <div class="profile-card" onclick="searchByDirectorName('${director.name.replace(/'/g, "\\'")}')">
+                            <img src="${director.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${director.name}" class="profile-img">
+                            <div class="profile-name">${director.name}</div>
+                        </div>
+                    `;
                 });
-
-                // Director click handler
-                document.querySelectorAll('.director-profile').forEach(el => {
-                    el.onclick = function () {
-                        const directorName = decodeURIComponent(this.getAttribute('data-director'));
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('tmdbModal')).hide();
-                        searchByDirectorName(directorName);
-                    };
-                });
-
-                // Genre click handler
-                document.querySelectorAll('.genre-badge').forEach(el => {
-                    el.onclick = function () {
-                        const genreName = decodeURIComponent(this.getAttribute('data-genre'));
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('tmdbModal')).hide();
-                        searchByGenre(genreName);
-                    };
-                });
+                directorHtml += `</div></div>`;
             }
 
-            // Helper to render file info cards
-            function renderFilesInfo() {
-                // Clear TMDB info and story
-                document.getElementById('modalMeta').innerHTML = "";
-                document.getElementById('modalStory').innerHTML = "";
+            // Cast cards
+            let castHtml = "";
+            if (entry.stars && entry.stars.length) {
+                castHtml = `<div class="tmdb-meta"><strong>Stars:</strong><div class="profile-card-row">`;
+                entry.stars.forEach(star => {
+                    castHtml += `
+                        <div class="profile-card" onclick="searchByCastName('${star.name.replace(/'/g, "\\'")}')">
+                            <img src="${star.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${star.name}" class="profile-img">
+                            <div class="profile-name">${star.name}</div>
+                        </div>
+                    `;
+                });
+                castHtml += `</div></div>`;
+            }
 
-                let filesHtml = "";
-                if (entry.files && entry.files.length) {
-                    filesHtml = `
-            <div class="mb-2"><strong>Files:</strong></div>
-            ${entry.files.map(file => `
-                <div class="file-container mb-3">
-                    <div class="file-card">
-                        <div class="file-info-block">
-                            <div class="file-value file-name">${file.file_name || ''}</div>
-                        </div>
-                        <div class="file-info-block">
-                            <div class="file-label">Size / Format</div>
-                            <div class="file-value">${humanFileSize(file.file_size) || ''}${file.file_format ? ' · ' + file.file_format : ''}</div>
-                        </div>
-                        <div class="file-info-block">
-                            <div class="file-label">Added On</div>
-                            <div class="file-value">${file.date || ''}</div>
-                        </div>
-                        <div class="file-info-block">
-                            <div class="file-value">
-                                <a class="btn btn-success btn-sm" href="${file.telegram_link}" target="_blank">Send</a>
+            // Genre tags (clickable)
+            let genreHtml = "";
+            const genres = getGenres(entry);
+            if (genres.length) {
+                genreHtml = `<div class="tmdb-meta"><strong>Genre:</strong> `;
+                genres.forEach(genre => {
+                    genreHtml += `<span class="badge bg-info text-dark genre-badge" style="cursor:pointer;margin:0 2px;" onclick="searchByGenre('${genre.replace(/'/g, "\\'")}')">${genre}</span>`;
+                });
+                genreHtml += `</div>`;
+            }
+
+            document.getElementById('modalMeta').innerHTML = `
+                <div class="tmdb-meta"><strong>Type:</strong> ${entry.tmdb_type || ''}</div>
+                <div class="tmdb-meta"><strong>Rating:</strong> ${entry.rating || ''}/10</div>
+                <div class="tmdb-meta"><strong>Language:</strong> ${entry.language || ''}</div>
+                ${genreHtml}
+                <div class="tmdb-meta"><strong>Release Date:</strong> ${entry.release_date || ''}</div>
+                ${directorHtml}
+                ${castHtml}
+                ${entry.trailer_url ? `<div class="tmdb-meta"><a href="${entry.trailer_url}" target="_blank" class="btn btn-outline-info btn-sm mt-1">Watch Trailer</a></div>` : ""}
+            `;
+            document.getElementById('modalStory').innerHTML = entry.story ? `<div><strong>Story:</strong> ${entry.story}</div>` : "";
+
+            // Files
+            let filesHtml = "";
+            if (entry.files && entry.files.length) {
+                filesHtml = `
+                    <div class="mb-2"><strong>Files:</strong></div>
+                    ${entry.files.map(file => `
+                        <div class="file-card">
+                            <div class="file-info-block">
+                                <div class="file-value file-name">${file.file_name || ''}</div>
+                            </div>
+                            <div class="file-info-block">
+                                <div class="file-label">Size / Format</div>
+                                <div class="file-value">${humanFileSize(file.file_size) || ''}${file.file_format ? ' · ' + file.file_format : ''}</div>
+                            </div>
+                            <div class="file-info-block">
+                                <div class="file-label">Added On</div>
+                                <div class="file-value">${file.date || ''}</div>
+                            </div>
+                            <div class="file-info-block">
+                                <div class="file-value">
+                                    <a class="btn btn-success btn-sm" href="${file.telegram_link}" target="_blank">Send</a>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `).join('')}
-            `;
-                } else {
-                    filesHtml = `<div class="text-muted">No files available.</div>`;
-                }
-                document.getElementById('modalFiles').innerHTML = filesHtml +
-                    `<div class="d-flex justify-content-center">
-                <button id="backToInfoBtn" class="btn btn-secondary mt-2">Back to Info</button>
-            </div>`;
-                document.getElementById('backToInfoBtn').onclick = renderTmdbInfo;
+                    `).join('')}
+                `;
+            } else {
+                filesHtml = `<div class="text-muted">No files available.</div>`;
             }
+            document.getElementById('modalFiles').innerHTML = filesHtml;
 
-            // Initial render: TMDB info + Get Files button
-            renderTmdbInfo();
-
-            // Show modal
-            const modal = new bootstrap.Modal(document.getElementById('tmdbModal'));
-            modal.show();
+            new bootstrap.Modal(document.getElementById('tmdbModal')).show();
         }
 
         async function loadAllTmdbFiles(reset = false) {
@@ -577,13 +479,10 @@
                 if (currentCast) url.searchParams.set("cast", currentCast);
                 if (currentDirector) url.searchParams.set("director", currentDirector);
                 if (currentGenre) url.searchParams.set("genre", currentGenre);
-                if (currentType) url.searchParams.set("tmdb_type", currentType);
-                if (currentSort) url.searchParams.set("sort", currentSort);
-                if (currentOrder) url.searchParams.set("order", currentOrder);
 
                 const resp = await fetch(url);
                 if (!resp.ok) throw new Error("API error");
-                const data = await resp.json();
+                const data = await resp.json(); // <-- FIXED HERE
                 const newResults = data.results || [];
                 if (reset) {
                     allTmdbResults = newResults;
@@ -603,101 +502,32 @@
             }
         }
 
-        async function searchByCastName(castName) {
+        function searchByCastName(castName) {
             offset = 0;
             currentQuery = "";
             currentCast = castName;
             currentDirector = "";
             currentGenre = "";
-            posterGrid.innerHTML = "";
-            loadingSpinner.style.display = 'block';
-            loadMoreBtn.style.display = 'none';
-            try {
-                const url = new URL(`${apiBase}/api/all-tmdb-files`);
-                url.searchParams.set("offset", 0);
-                url.searchParams.set("limit", limit);
-                url.searchParams.set("cast", castName);
-
-                const resp = await fetch(url);
-                if (!resp.ok) throw new Error("API error");
-                const data = await resp.json();
-                const results = data.results || [];
-                allTmdbResults = results;
-                renderPosters(results, false);
-                offset = limit;
-                hasMore = data.has_more;
-                loadMoreBtn.style.display = hasMore ? 'block' : 'none';
-                loadMoreBtn.disabled = !hasMore;
-            } catch (e) {
-                alert("Failed to search by cast.");
-            } finally {
-                loadingSpinner.style.display = 'none';
-            }
+            setActiveGenre("");
+            loadAllTmdbFiles(true);
         }
-
-        async function searchByDirectorName(directorName) {
+        function searchByDirectorName(directorName) {
             offset = 0;
             currentQuery = "";
             currentCast = "";
             currentDirector = directorName;
             currentGenre = "";
-            posterGrid.innerHTML = "";
-            loadingSpinner.style.display = 'block';
-            loadMoreBtn.style.display = 'none';
-            try {
-                const url = new URL(`${apiBase}/api/all-tmdb-files`);
-                url.searchParams.set("offset", 0);
-                url.searchParams.set("limit", limit);
-                url.searchParams.set("director", directorName);
-
-                const resp = await fetch(url);
-                if (!resp.ok) throw new Error("API error");
-                const data = await resp.json();
-                const results = data.results || [];
-                allTmdbResults = results;
-                renderPosters(results, false);
-                offset = limit;
-                hasMore = data.has_more;
-                loadMoreBtn.style.display = hasMore ? 'block' : 'none';
-                loadMoreBtn.disabled = !hasMore;
-            } catch (e) {
-                alert("Failed to search by director.");
-            } finally {
-                loadingSpinner.style.display = 'none';
-            }
+            setActiveGenre("");
+            loadAllTmdbFiles(true);
         }
-
-        async function searchByGenre(genreName) {
+        function searchByGenre(genreName) {
             offset = 0;
             currentQuery = "";
             currentCast = "";
             currentDirector = "";
             currentGenre = genreName;
             setActiveGenre(genreName);
-            posterGrid.innerHTML = "";
-            loadingSpinner.style.display = 'block';
-            loadMoreBtn.style.display = 'none';
-            try {
-                const url = new URL(`${apiBase}/api/all-tmdb-files`);
-                url.searchParams.set("offset", 0);
-                url.searchParams.set("limit", limit);
-                if (genreName) url.searchParams.set("genre", genreName);
-
-                const resp = await fetch(url);
-                if (!resp.ok) throw new Error("API error");
-                const data = await resp.json();
-                const results = data.results || [];
-                allTmdbResults = results;
-                renderPosters(results, false);
-                offset = limit;
-                hasMore = data.has_more;
-                loadMoreBtn.style.display = hasMore ? 'block' : 'none';
-                loadMoreBtn.disabled = !hasMore;
-            } catch (e) {
-                alert("Failed to search by genre.");
-            } finally {
-                loadingSpinner.style.display = 'none';
-            }
+            loadAllTmdbFiles(true);
         }
 
         searchInput.addEventListener('input', () => {
@@ -706,7 +536,6 @@
             currentDirector = "";
             currentGenre = "";
             setActiveGenre("");
-            setActiveFilterBtn("");
             loadAllTmdbFiles(true);
         });
 
@@ -714,37 +543,9 @@
             loadAllTmdbFiles(false);
         });
 
-        document.getElementById('topRatedBtn').addEventListener('click', () => {
-            currentSort = "rating";
-            currentOrder = "desc";
-            currentType = "";
-            setActiveGenre("");
-            setActiveFilterBtn('topRatedBtn');
-            loadAllTmdbFiles(true);
-        });
-
-        document.getElementById('movieBtn').addEventListener('click', () => {
-            currentType = "movie";
-            currentSort = "_id";
-            currentOrder = "desc";
-            setActiveGenre("");
-            setActiveFilterBtn('movieBtn');
-            loadAllTmdbFiles(true);
-        });
-
-        document.getElementById('tvBtn').addEventListener('click', () => {
-            currentType = "tv";
-            currentSort = "_id";
-            currentOrder = "desc";
-            setActiveGenre("");
-            setActiveFilterBtn('tvBtn');
-            loadAllTmdbFiles(true);
-        });
-
         window.addEventListener('DOMContentLoaded', () => {
             loadAllTmdbFiles(true);
         });
     </script>
 </body>
-
 </html>
