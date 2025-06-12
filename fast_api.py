@@ -144,7 +144,7 @@ async def api_all_tmdb_files(
     query = build_query(params, search_fields)
 
     sort_field = "date" if sort not in ["rating", "date"] else sort
-    sort_order = -1 if order == "desc" else 1
+    sort_order = -1
 
     cursor = files_col.find(query, {"_id": 0}).sort(sort_field, sort_order).skip(offset).limit(limit)
     tmdb_entries = await cursor.to_list(length=limit)
