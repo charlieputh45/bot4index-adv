@@ -410,7 +410,7 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
     The 'message' field from tmdb_info is not saved to the database.
     Only sends a message if this tmdb_id and tmdb_type is not already in the database.
     """
-    result = await get_by_id(tmdb_type, tmdb_id, bot)
+    result = await get_by_id(tmdb_type, tmdb_id)
     tmdb_info = result['mongo_dict']
     if not tmdb_info:
         return None
