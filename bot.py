@@ -108,16 +108,11 @@ async def start_handler(client, message):
             await safe_api_call(message.reply_text("Invalid file link."))
             return
 
-        file_doc = await files_col.find_one({"channel_id": channel_id, "message_id": msg_id})
-        if not file_doc:
-            await safe_api_call(message.reply_text("File not found."))
-            return
-
         try:
             sent = await safe_api_call(client.copy_message(
                 chat_id=message.chat.id,
-                from_chat_id=file_doc["channel_id"],
-                message_id=file_doc["message_id"]
+                from_chat_id=channel_id,
+                message_id=msg_id
             ))
             user_file_count[user_id] += 1
             bot.loop.create_task(delete_after_delay(client, sent.chat.id, sent.id))
