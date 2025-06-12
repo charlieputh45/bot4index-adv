@@ -293,39 +293,6 @@ async def extract_movie_info(caption):
     return None, None, 
 
 # =========================
-# TMDB Utilities
-# =========================
-
-async def get_info(type, id, bot):
-    try:
-        result = await get_by_id(id, type)
-        poster_url = result['backdrop_url']
-        trailer = result['trailer_url']
-        info = result['message']
-
-        if poster_url: 
-            # Create the inline keyboard only if a trailer is available
-            keyboard = None
-            if trailer:
-                keyboard = InlineKeyboardMarkup(
-                    [
-                        [InlineKeyboardButton("🎥 Trailer", url=trailer)]
-                    ]
-                )
-
-            # Send the photo with or without the button
-            await bot.send_photo(
-                UPDATE_CHANNEL_ID,
-                photo=poster_url,
-                caption=info,
-                parse_mode=enums.ParseMode.HTML,
-                reply_markup=keyboard
-            )
-            await asyncio.sleep(3)
-    except Exception as e:
-        logger.error(f" info error {e}")
-
-# =========================
 # Queue System for File Processing
 # =========================
 
@@ -429,6 +396,31 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
     
     # Only send message if this is a new tmdb_id/tmdb_type entry
     if not existing and tmdb_info:
-        await get_info(tmdb_type, tmdb_id, bot)
+        try:
+            poster_url = result['backdrop_url']
+            trailer = result['trailer_url']
+            info = result['message']
+
+            if poster_url: 
+                # Create the inline keyboard only if a trailer is available
+                keyboard = None
+                if trailer:
+                    keyboard = InlineKeyboardMarkup(
+                        [
+                            [InlineKeyboardButton("🎥 Trailer", url=trailer)]
+                        ]
+                    )
+
+                # Send the photo with or without the button
+                await bot.send_photo(
+                    UPDATE_CHANNEL_ID,
+                    photo=poster_url,
+                    caption=info,
+                    parse_mode=enums.ParseMode.HTML,
+                    reply_markup=keyboard
+                )
+                await asyncio.sleep(3)
+        except Exception as e:
+            logger.error(f" info error {e}")
 
 
