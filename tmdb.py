@@ -96,7 +96,7 @@ async def get_tv_imdb_id(tv_id):
             data = await resp.json()
             return data.get("imdb_id")
 
-async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
+async def get_tmdb_info_dict(tmdb_type, tmdb_id):
     """
     Fetch TMDB info, use IMDb only for rating, language, and storyline, and return a dict for MongoDB storage and messaging.
     Includes trailer, poster, directors, stars, and a formatted message.
@@ -258,10 +258,6 @@ async def get_tmdb_info_dict(tmdb_type, tmdb_id, season=None, episode=None):
             release_date_fmt = release_date
 
         message = f"<b>🏷️Title:</b> {title}\n"
-        if season:
-            message += f"<b>📺Season:</b> {season}\n"
-        if episode:
-            message += f"<b>📺Episode:</b> {episode}\n"
         if rating:
             message += f"<b>🌟Rating:</b> {rating} / 10\n"
         if language:

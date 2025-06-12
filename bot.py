@@ -20,7 +20,7 @@ from utility import (
     generate_token, shorten_url, get_token_link, extract_channel_and_msg_id,
     safe_api_call, get_allowed_channels, extract_file_info,
     delete_after_delay, queue_file_for_processing, file_queue_worker,
-    file_queue, extract_tmdb_link
+    extract_tmdb_link, file_handler, remove_unwanted
 )
 from db import db, users_col, tokens_col, files_col, allowed_channels_col, auth_users_col
 from fast_api import api
@@ -135,11 +135,20 @@ async def start_handler(client, message):
 
 @bot.on_message(filters.document | filters.video | filters.audio | filters.photo)
 async def channel_file_handler(client, message):
-    allowed_channels = await get_allowed_channels()
-    if message.chat.id not in allowed_channels:
-        return
-    await queue_file_for_processing(message, reply_func=message.reply_text)
-    await file_queue.join()
+    await file_handler(message)
+
+copy_lock = asyncio.Lock()
+
+@bot.on_message(
+    (filters.document | filters.video | filters.audio) & filters.private & filters.user(OWNER_ID)
+)
+async def private_file_handler(client, message: Message):
+    media = message.document or message.video or message.audio or message.photo
+    if media:
+        caption = remove_unwanted(message.caption or (media.file_name if hasattr(media, "file_name") else ""))
+        async with copy_lock:
+            cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>")
+        await file_handler(cpy_msg)
 
 @bot.on_message(filters.command("index") & filters.user(OWNER_ID))
 async def index_channel_files(client, message: Message):
@@ -421,16 +430,14 @@ async def stats_command(client, message: Message):
 async def tmdb_command(client, message):
     """
     Manually update a file's TMDB info in the database.
-    Usage: /tmdb <telegram_file_link> <tmdb_link> [season] [episode]
+    Usage: /tmdb <telegram_file_link> <tmdb_link>
     """
     if len(message.command) < 3:
-        await safe_api_call(message.reply_text("Usage: /tmdb <telegram_file_link> <tmdb_link> [season] [episode]"))
+        await safe_api_call(message.reply_text("Usage: /tmdb <telegram_file_link> <tmdb_link>"))
         return
 
     telegram_file_link = message.command[1]
     tmdb_link = message.command[2]
-    season = message.command[3] if len(message.command) > 3 else None
-    episode = message.command[4] if len(message.command) > 4 else None
 
     try:
         # Extract channel_id and message_id from telegram link
@@ -464,18 +471,15 @@ async def tmdb_command(client, message):
 
     # Now update the file doc with TMDB info
     try:
-        await upsert_file_with_tmdb_info(file_info,
+        await upsert_file_with_tmdb_info(
+            file_info,
             tmdb_type,
             tmdb_id,
-            season,
-            episode,
             bot
         )
         await safe_api_call(message.reply_text("✅ File updated with TMDB info."))
     except Exception as e:
         await safe_api_call(message.reply_text(f"Failed to update TMDB info: {e}"))
-
-
 
 
 # =========================

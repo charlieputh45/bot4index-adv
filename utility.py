@@ -35,6 +35,14 @@ all_tmdb_files_cache = {}
 # Channel & User Utilities
 # =========================
 
+async def file_handler(message):
+    allowed_channels = await get_allowed_channels()
+    if message.chat.id not in allowed_channels:
+        return
+    await queue_file_for_processing(message, reply_func=message.reply_text)
+    await file_queue.join()
+
+
 async def get_allowed_channels():
     cursor = allowed_channels_col.find({}, {"_id": 0, "channel_id": 1})
     return [doc["channel_id"] async for doc in cursor]
@@ -262,13 +270,6 @@ async def extract_tmdb_link(tmdb_url):
 
 async def extract_movie_info(caption):
     try:
-        # Extract season and episode (e.g., S01, S02, E01, E02)
-        season_match = re.search(r'\bS(\d{1,2})\b', caption, re.IGNORECASE)
-        episode_match = re.search(r'\bE(\d{1,2})\b', caption, re.IGNORECASE)
-
-        season = f"S{int(season_match.group(1)):02d}" if season_match else None
-        episode = f"E{int(episode_match.group(1)):02d}" if episode_match else None
-
         current_year = datetime.now().year + 2  # Allow a couple of years ahead for upcoming movies
         # Exclude 4-digit numbers followed by 'p' (like 1080p, 2160p, 720p)
         years = [
@@ -285,11 +286,11 @@ async def extract_movie_info(caption):
         else:
             movie_name = caption
 
-        # Return all info separately
-        return movie_name, release_year, season, episode
+        # Return only movie_name and release_year, season and episode as None
+        return movie_name, release_year
     except Exception as e:
         logger.error(f"Extract Movie info Error : {e}")
-    return None, None, None, None
+    return None, None, 
 
         
 # =========================
@@ -323,10 +324,10 @@ async def file_queue_worker(bot):
             else:
                 try:
                     if str(file_info["channel_id"]) not in EXCLUDE_CHANNEL_ID:
-                        title, release_year, season, episode = await extract_movie_info(file_info["file_name"])
+                        title, release_year= await extract_movie_info(file_info["file_name"])
                         result = await get_by_name(title, release_year)
                         tmdb_id, tmdb_type = result['id'], result['media_type'] 
-                        await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, episode, bot)
+                        await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot)
                 except Exception as e:
                     logger.error(f"Error processing TMDB info:{e}")
                     if reply_func:
@@ -370,17 +371,21 @@ async def queue_file_for_processing(message, channel_id=None, reply_func=None):
         if reply_func:
             await safe_api_call(reply_func(f"❌ Error queuing file: {e}"))
 
-async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, episode, bot):
+async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
     """
     Upserts a document by tmdb_id and tmdb_type, adding file_info to the files array.
     This is an asynchronous version using Motor.
     The 'message' field from tmdb_info is not saved to the database.
+    Only sends a message if this tmdb_id and tmdb_type is not already in the database.
     """
-    info_dict, message, backdrop_url = await get_tmdb_info_dict(tmdb_type, tmdb_id, season, episode)
+    info_dict, message, backdrop_url = await get_tmdb_info_dict(tmdb_type, tmdb_id)
     if not info_dict:
         return None
 
     info_dict.pop('files', None)
+
+    # Check if tmdb_id and tmdb_type already exist in the database
+    existing = await files_col.find_one({"tmdb_id": tmdb_id, "tmdb_type": tmdb_type})
 
     await files_col.update_one(
         {"tmdb_id": tmdb_id, "tmdb_type": tmdb_type},
@@ -391,7 +396,8 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, season, epis
         upsert=True
     )
     
-    if info_dict:
+    # Only send message if this is a new tmdb_id/tmdb_type entry
+    if not existing and info_dict:
         poster_url = backdrop_url
         trailer = info_dict.get('trailer_url')
         info = message

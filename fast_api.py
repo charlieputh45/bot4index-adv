@@ -47,13 +47,6 @@ async def root():
     """Greet users on root route."""
     return JSONResponse({"message": "👋 Hello! Welcome to the Sharing Bot"})
 
-@api.get("/api/channels")
-async def api_channels():
-    """List all channels (JSON)."""
-    cursor = allowed_channels_col.find({}, {"_id": 0, "channel_id": 1, "channel_name": 1})
-    channels = await cursor.to_list(length=None)
-    return JSONResponse({"channels": channels})
-
 @api.get("/api/all-tmdb-files")
 async def api_all_tmdb_files(
     q: str = "",
@@ -82,7 +75,7 @@ async def api_all_tmdb_files(
     if genre:
         query["genre"] = {"$regex": genre, "$options": "i"}
 
-    cursor = files_col.find(query, {"_id": 0}).sort("release_date", -1).skip(offset).limit(limit)
+    cursor = files_col.find(query, {"_id": 0}).sort("date", -1).skip(offset).limit(limit)
     tmdb_entries = await cursor.to_list(length=limit)
 
     def serialize_file(file):
