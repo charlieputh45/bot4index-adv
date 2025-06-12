@@ -19,7 +19,7 @@ from db import (
 from config import (SHORTERNER_URL, URLSHORTX_API_TOKEN, 
                     UPDATE_CHANNEL_ID, EXCLUDE_CHANNEL_ID,
                     LOG_CHANNEL_ID)
-from tmdb import get_by_name, get_tmdb_info_dict
+from tmdb import get_by_name, get_by_id
 
 # =========================
 # Constants & Globals
@@ -292,7 +292,39 @@ async def extract_movie_info(caption):
         logger.error(f"Extract Movie info Error : {e}")
     return None, None, 
 
-        
+# =========================
+# TMDB Utilities
+# =========================
+
+async def get_info(type, id, bot):
+    try:
+        result = await get_by_id(id, type)
+        poster_url = result['backdrop_url']
+        trailer = result['trailer_url']
+        info = result['message']
+
+        if poster_url: 
+            # Create the inline keyboard only if a trailer is available
+            keyboard = None
+            if trailer:
+                keyboard = InlineKeyboardMarkup(
+                    [
+                        [InlineKeyboardButton("🎥 Trailer", url=trailer)]
+                    ]
+                )
+
+            # Send the photo with or without the button
+            await bot.send_photo(
+                UPDATE_CHANNEL_ID,
+                photo=poster_url,
+                caption=info,
+                parse_mode=enums.ParseMode.HTML,
+                reply_markup=keyboard
+            )
+            await asyncio.sleep(3)
+    except Exception as e:
+        logger.error(f" info error {e}")
+
 # =========================
 # Queue System for File Processing
 # =========================
@@ -378,11 +410,10 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
     The 'message' field from tmdb_info is not saved to the database.
     Only sends a message if this tmdb_id and tmdb_type is not already in the database.
     """
-    info_dict, message, backdrop_url = await get_tmdb_info_dict(tmdb_type, tmdb_id)
-    if not info_dict:
+    result = await get_by_id(tmdb_type, tmdb_id, bot)
+    tmdb_info = result['mongo_dict']
+    if not tmdb_info:
         return None
-
-    info_dict.pop('files', None)
 
     # Check if tmdb_id and tmdb_type already exist in the database
     existing = await files_col.find_one({"tmdb_id": tmdb_id, "tmdb_type": tmdb_type})
@@ -390,29 +421,14 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
     await files_col.update_one(
         {"tmdb_id": tmdb_id, "tmdb_type": tmdb_type},
         {
-            "$set": info_dict,
+            "$set": tmdb_info,
             "$addToSet": {"files": file_info}
         },
         upsert=True
     )
     
     # Only send message if this is a new tmdb_id/tmdb_type entry
-    if not existing and info_dict:
-        poster_url = backdrop_url
-        trailer = info_dict.get('trailer_url')
-        info = message
-        if poster_url:
-            keyboard = InlineKeyboardMarkup(
-                [[InlineKeyboardButton("🎥 Trailer", url=trailer)]]) if trailer else None
-            await safe_api_call(
-                bot.send_photo(
-                    UPDATE_CHANNEL_ID,
-                    photo=poster_url,
-                    caption=info,
-                    parse_mode=enums.ParseMode.HTML,
-                    reply_markup=keyboard
-                )
-            )
-
+    if not existing and tmdb_info:
+        await get_info(tmdb_type, tmdb_id, bot)
 
 
