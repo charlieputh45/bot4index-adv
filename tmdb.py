@@ -22,8 +22,9 @@ def clean_genre_name(genre):
     return re.sub(r'[^A-Za-z0-9]', '', genre)
 
 def genre_tag_with_emoji(genre):
-    emoji = GENRE_EMOJI_MAP.get(genre, "")
+    # emoji = GENRE_EMOJI_MAP.get(genre, "")
     clean_name = clean_genre_name(genre)
+    emoji = GENRE_EMOJI_MAP.get(clean_name, "")
     return f"#{clean_name}{' ' + emoji if emoji else ''}"
 
 def extract_language(data):
@@ -31,7 +32,15 @@ def extract_language(data):
     return spoken_languages[0]['english_name'] if spoken_languages else "Unknown"
 
 def extract_genres(data):
-    return [genre['name'] for genre in data.get('genres', [])]
+    genres = []
+    for genre in data.get('genres', []):
+        # Split genre names containing '&' into separate genres
+        if '&' in genre['name']:
+            parts = [g.strip() for g in genre['name'].split('&')]
+            genres.extend(parts)
+        else:
+            genres.append(genre['name'])
+    return genres
 
 def extract_release_date(data):
     return data.get('release_date') or data.get('first_air_date', "")
