@@ -207,11 +207,10 @@ async def format_tmdb_info(directors_str, stars_str, data):
         if num_seasons is not None and num_episodes is not None:
             seasons_str = f"<b>📺Seasons:</b> {num_seasons}  <b>🎞️Episodes:</b> {num_episodes}\n"
 
-    message = (
-        f"<b>🏷️Title:</b> {title}\n"
-        f"<b>🌟Rating:</b> {rating} / 10\n"
-        f"<b>⏳️Runtime:</b> {format_duration(runtime)}\n" if runtime else ""
-    )
+    message = f"<b>🏷️Title:</b> {title}\n"
+    message += f"<b>🌟Rating:</b> {rating} / 10\n"
+    if data.get('media_type') == "movie" and runtime:
+        message += f"<b>⏳️Runtime:</b> {format_duration(runtime)}\n"
     message += f"<b>🅰️Language:</b> {language}\n"
     message += f"<b>⚙️Genre:</b> {genre_tags}\n" if genre_tags else ""
     message += f"<b>📆Release:</b> {release_date_fmt}\n" if release_date_fmt else ""
