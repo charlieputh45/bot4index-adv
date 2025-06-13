@@ -188,7 +188,7 @@ async def format_tmdb_info(directors_str, stars_str, data):
     title = data.get('title') or data.get('name')
     rating = round(float(data.get('vote_average', 0)), 1)
     tagline = data.get('tagline', "")
-    runtime = data.get('runtime') or (data.get('episode_run_time', [None])[0])
+    runtime = data.get('runtime') 
     release_date = extract_release_date(data)
     release_date_fmt = ""
     if release_date and len(release_date) >= 10:
