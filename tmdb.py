@@ -175,7 +175,7 @@ async def format_tmdb_info(directors_str, stars_str, data):
     message += f"<b>🎬Director:</b> {directors_str}\n"
     message += f"<b>⭐Stars:</b> {stars_str}\n"
     message += "\n"
-    message += f"<b>🏷️Tagline:</b> {tagline}\n" if tagline else ""
+    message += f"{tagline}\n" if tagline else ""
 
     return message.strip()
 
