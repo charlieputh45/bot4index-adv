@@ -95,31 +95,6 @@
             font-weight: 600;
             margin-left: 0.5rem;
         }
-        .genre-bar {
-            display: flex;
-            overflow-x: auto;
-            gap: 0.7rem;
-            padding: 0.7rem 0 0.7rem 0.2rem;
-            margin-bottom: 1.2rem;
-            scrollbar-width: thin;
-        }
-        .genre-pill {
-            background: #23272b;
-            color: #7da0fa;
-            border-radius: 2rem;
-            padding: 0.4em 1.2em;
-            font-size: 1em;
-            font-weight: 500;
-            border: 1px solid #7da0fa44;
-            cursor: pointer;
-            transition: background 0.18s, color 0.18s;
-            white-space: nowrap;
-        }
-        .genre-pill:hover,
-        .genre-pill.active {
-            background: #7da0fa;
-            color: #23272b;
-        }
         .modal-header,
         .modal-body,
         .modal-footer {
@@ -215,21 +190,23 @@
         .profile-name {
             font-size: 0.95rem;
             color: inherit;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             font-weight: 600;
             width: 100%;
             text-align: center;
             padding: 0.4em 0.2em 0.5em 0.2em;
             background: none;
+            white-space: normal; /* allow wrapping */
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
         @media (max-width: 576px) {
             .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem;}
             .poster-img { max-height: 200px;}
             .tmdb-poster-modal { max-width: 100%;}
             .file-card { padding: 0.7rem 0.5rem;}
-            .profile-card { width: 60px;}
+            .profile-card { width: 100px; } /* was 60px */
+            .profile-img { width: 100%; height: auto; } /* ensure image fills card */
+            .profile-name { font-size: 0.85rem; }
         }
         @media (max-width: 768px) {
             .file-card { flex-direction: column; align-items: stretch; text-align: center; padding: 0.7rem 0.5rem;}
@@ -240,28 +217,29 @@
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">TG⚡️FLIX</a>
+            <div class="ms-auto">
+                <div class="dropdown">
+                    <button class="btn btn-outline-light" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border:none;background:none;">
+                        <span style="font-size:1.8rem;line-height:1;">
+                            &#9776;
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuDropdown">
+                        <li>
+                            <a class="dropdown-item" href="nfiles.html">
+                                <span class="me-2">&#128194;</span>Browse N Files
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
     <div class="container py-4">
-        <div class="genre-bar" id="genreBar">
-            <span class="genre-pill active" onclick="searchByGenre('')">All</span>
-            <span class="genre-pill" onclick="searchByGenre('Action')">Action</span>
-            <span class="genre-pill" onclick="searchByGenre('Drama')">Drama</span>
-            <span class="genre-pill" onclick="searchByGenre('Comedy')">Comedy</span>
-            <span class="genre-pill" onclick="searchByGenre('Thriller')">Thriller</span>
-            <span class="genre-pill" onclick="searchByGenre('Romance')">Romance</span>
-            <span class="genre-pill" onclick="searchByGenre('Sci-Fi')">Sci-Fi</span>
-            <span class="genre-pill" onclick="searchByGenre('Horror')">Horror</span>
-            <span class="genre-pill" onclick="searchByGenre('Animation')">Animation</span>
-            <span class="genre-pill" onclick="searchByGenre('Crime')">Crime</span>
-            <span class="genre-pill" onclick="searchByGenre('Adventure')">Adventure</span>
-            <span class="genre-pill" onclick="searchByGenre('Family')">Family</span>
-            <span class="genre-pill" onclick="searchByGenre('Fantasy')">Fantasy</span>
-            <span class="genre-pill" onclick="searchByGenre('Mystery')">Mystery</span>
-            <span class="genre-pill" onclick="searchByGenre('History')">History</span>
-            <span class="genre-pill" onclick="searchByGenre('Music')">Music</span>
-            <span class="genre-pill" onclick="searchByGenre('War')">War</span>
-            <span class="genre-pill" onclick="searchByGenre('Western')">Western</span>
+        <div class="d-flex flex-wrap gap-2 justify-content-center mb-3" id="sortBar">
+            <button class="btn btn-outline-info active" id="sortRecentBtn">Recently Added</button>
+            <button class="btn btn-outline-info" id="sortTopRatedBtn">Top Rated</button>
+            <button class="btn btn-outline-info" id="sortNewReleaseBtn">New Release</button>
         </div>
         <div class="mb-4 d-flex justify-content-center">
             <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by title...">
@@ -290,7 +268,12 @@
                     <div class="flex-grow-1">
                         <div id="modalMeta"></div>
                         <div id="modalStory" class="mb-3"></div>
-                        <div id="modalFiles"></div>
+                        <div id="modalFiles" style="display:none"></div>
+                        <div class="d-flex flex-column align-items-center gap-2 mt-3">
+                            <button class="btn btn-outline-info" id="getFilesBtn">Get Files</button>
+                            <button class="btn btn-outline-secondary" id="backToInfoBtn" style="display:none">Back to Info</button>
+                        </div>
+                        <div id="modalBackBtn" class="mt-2 text-end"></div>
                     </div>
                 </div>
             </div>
@@ -298,7 +281,7 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const apiBase = "https://wonderful-martha-hrdex-f37760c8.koyeb.app";
+        const apiBase = "";
         let allTmdbResults = [];
         let offset = 0;
         const limit = 10;
@@ -308,11 +291,46 @@
         let currentDirector = "";
         let currentGenre = "";
 
+        // Sorting state
+        let currentSort = "_id";
+        let currentOrder = "desc";
+
+        // For modal back button
+        let prevFilter = null;
+
         const posterGrid = document.getElementById('posterGrid');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const searchInput = document.getElementById('searchInput');
-        const genreBar = document.getElementById('genreBar');
+
+        // Sort buttons
+        const sortRecentBtn = document.getElementById('sortRecentBtn');
+        const sortTopRatedBtn = document.getElementById('sortTopRatedBtn');
+        const sortNewReleaseBtn = document.getElementById('sortNewReleaseBtn');
+
+        function setActiveSortBtn(btn) {
+            [sortRecentBtn, sortTopRatedBtn, sortNewReleaseBtn].forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        sortRecentBtn.onclick = () => {
+            currentSort = "_id";
+            currentOrder = "desc";
+            setActiveSortBtn(sortRecentBtn);
+            loadAllTmdbFiles(true);
+        };
+        sortTopRatedBtn.onclick = () => {
+            currentSort = "rating";
+            currentOrder = "desc";
+            setActiveSortBtn(sortTopRatedBtn);
+            loadAllTmdbFiles(true);
+        };
+        sortNewReleaseBtn.onclick = () => {
+            currentSort = "release_date";
+            currentOrder = "desc";
+            setActiveSortBtn(sortNewReleaseBtn);
+            loadAllTmdbFiles(true);
+        };
 
         loadMoreBtn.disabled = true;
 
@@ -360,16 +378,6 @@
             });
         }
 
-        function setActiveGenre(genreName) {
-            document.querySelectorAll('.genre-pill').forEach(el => {
-                if ((genreName === "" && el.textContent === "All") || el.textContent === genreName) {
-                    el.classList.add('active');
-                } else {
-                    el.classList.remove('active');
-                }
-            });
-        }
-
         function showTmdbModal(entry) {
             document.getElementById('tmdbModalLabel').textContent = entry.title || '';
             document.getElementById('modalPoster').src = entry.poster_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg';
@@ -380,7 +388,7 @@
                 directorHtml = `<div class="tmdb-meta"><strong>Directors:</strong><div class="profile-card-row">`;
                 entry.directors.forEach(director => {
                     directorHtml += `
-                        <div class="profile-card" onclick="searchByDirectorName('${director.name.replace(/'/g, "\\'")}')">
+                        <div class="profile-card director-badge" data-director="${encodeURIComponent(director.name)}">
                             <img src="${director.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${director.name}" class="profile-img">
                             <div class="profile-name">${director.name}</div>
                         </div>
@@ -395,7 +403,7 @@
                 castHtml = `<div class="tmdb-meta"><strong>Stars:</strong><div class="profile-card-row">`;
                 entry.stars.forEach(star => {
                     castHtml += `
-                        <div class="profile-card" onclick="searchByCastName('${star.name.replace(/'/g, "\\'")}')">
+                        <div class="profile-card cast-badge" data-cast="${encodeURIComponent(star.name)}">
                             <img src="${star.profile_path || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="${star.name}" class="profile-img">
                             <div class="profile-name">${star.name}</div>
                         </div>
@@ -410,7 +418,7 @@
             if (genres.length) {
                 genreHtml = `<div class="tmdb-meta"><strong>Genre:</strong> `;
                 genres.forEach(genre => {
-                    genreHtml += `<span class="badge bg-info text-dark genre-badge" style="cursor:pointer;margin:0 2px;" onclick="searchByGenre('${genre.replace(/'/g, "\\'")}')">${genre}</span>`;
+                    genreHtml += `<span class="badge bg-info text-dark genre-badge" style="cursor:pointer;margin:0 2px;" data-genre="${encodeURIComponent(genre)}">${genre}</span>`;
                 });
                 genreHtml += `</div>`;
             }
@@ -457,8 +465,103 @@
                 filesHtml = `<div class="text-muted">No files available.</div>`;
             }
             document.getElementById('modalFiles').innerHTML = filesHtml;
+            document.getElementById('modalFiles').style.display = "none";
+            document.getElementById('modalMeta').style.display = "";
+            document.getElementById('modalStory').style.display = "";
+            document.getElementById('getFilesBtn').style.display = "";
+            document.getElementById('backToInfoBtn').style.display = "none";
 
-            new bootstrap.Modal(document.getElementById('tmdbModal')).show();
+            // Back button (only show if prevFilter is set)
+            document.getElementById('modalBackBtn').innerHTML = prevFilter
+                ? `<button class="btn btn-secondary" id="modalBackFilterBtn">Back</button>`
+                : "";
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('tmdbModal'));
+            modal.show();
+
+            // Add click handlers for genre, cast, director, back, and files/info toggle
+            setTimeout(() => {
+                document.querySelectorAll('.genre-badge').forEach(el => {
+                    el.onclick = function () {
+                        const genreName = decodeURIComponent(this.getAttribute('data-genre'));
+                        setPrevFilter();
+                        filterBy('genre', genreName);
+                        modal.hide();
+                    };
+                });
+                document.querySelectorAll('.cast-badge').forEach(el => {
+                    el.onclick = function () {
+                        const castName = decodeURIComponent(this.getAttribute('data-cast'));
+                        setPrevFilter();
+                        filterBy('cast', castName);
+                        modal.hide();
+                    };
+                });
+                document.querySelectorAll('.director-badge').forEach(el => {
+                    el.onclick = function () {
+                        const directorName = decodeURIComponent(this.getAttribute('data-director'));
+                        setPrevFilter();
+                        filterBy('director', directorName);
+                        modal.hide();
+                    };
+                });
+                const backBtn = document.getElementById('modalBackFilterBtn');
+                if (backBtn) {
+                    backBtn.onclick = function () {
+                        restorePrevFilter();
+                        modal.hide();
+                    };
+                }
+                // Get Files and Back to Info buttons
+                document.getElementById('getFilesBtn').onclick = function () {
+                    document.getElementById('modalMeta').style.display = "none";
+                    document.getElementById('modalStory').style.display = "none";
+                    document.getElementById('modalFiles').style.display = "";
+                    document.getElementById('getFilesBtn').style.display = "none";
+                    document.getElementById('backToInfoBtn').style.display = "";
+                };
+                document.getElementById('backToInfoBtn').onclick = function () {
+                    document.getElementById('modalMeta').style.display = "";
+                    document.getElementById('modalStory').style.display = "";
+                    document.getElementById('modalFiles').style.display = "none";
+                    document.getElementById('getFilesBtn').style.display = "";
+                    document.getElementById('backToInfoBtn').style.display = "none";
+                };
+            }, 100);
+        }
+
+        function setPrevFilter() {
+            prevFilter = {
+                currentQuery,
+                currentCast,
+                currentDirector,
+                currentGenre,
+                offset
+            };
+        }
+
+        function restorePrevFilter() {
+            if (!prevFilter) return;
+            currentQuery = prevFilter.currentQuery;
+            currentCast = prevFilter.currentCast;
+            currentDirector = prevFilter.currentDirector;
+            currentGenre = prevFilter.currentGenre;
+            offset = prevFilter.offset;
+            prevFilter = null;
+            loadAllTmdbFiles(true);
+        }
+
+        function filterBy(type, value) {
+            offset = 0;
+            currentQuery = "";
+            currentCast = "";
+            currentDirector = "";
+            currentGenre = "";
+            if (type === 'genre') currentGenre = value;
+            if (type === 'cast') currentCast = value;
+            if (type === 'director') currentDirector = value;
+            loadAllTmdbFiles(true);
         }
 
         async function loadAllTmdbFiles(reset = false) {
@@ -475,6 +578,8 @@
                 const url = new URL(`${apiBase}/api/all-tmdb-files`);
                 url.searchParams.set("offset", offset);
                 url.searchParams.set("limit", limit);
+                url.searchParams.set("sort", currentSort);
+                url.searchParams.set("order", currentOrder);
                 if (currentQuery) url.searchParams.set("q", currentQuery);
                 if (currentCast) url.searchParams.set("cast", currentCast);
                 if (currentDirector) url.searchParams.set("director", currentDirector);
@@ -482,7 +587,7 @@
 
                 const resp = await fetch(url);
                 if (!resp.ok) throw new Error("API error");
-                const data = await resp.json(); // <-- FIXED HERE
+                const data = await resp.json();
                 const newResults = data.results || [];
                 if (reset) {
                     allTmdbResults = newResults;
@@ -502,40 +607,12 @@
             }
         }
 
-        function searchByCastName(castName) {
-            offset = 0;
-            currentQuery = "";
-            currentCast = castName;
-            currentDirector = "";
-            currentGenre = "";
-            setActiveGenre("");
-            loadAllTmdbFiles(true);
-        }
-        function searchByDirectorName(directorName) {
-            offset = 0;
-            currentQuery = "";
-            currentCast = "";
-            currentDirector = directorName;
-            currentGenre = "";
-            setActiveGenre("");
-            loadAllTmdbFiles(true);
-        }
-        function searchByGenre(genreName) {
-            offset = 0;
-            currentQuery = "";
-            currentCast = "";
-            currentDirector = "";
-            currentGenre = genreName;
-            setActiveGenre(genreName);
-            loadAllTmdbFiles(true);
-        }
-
         searchInput.addEventListener('input', () => {
             currentQuery = searchInput.value.trim();
             currentCast = "";
             currentDirector = "";
             currentGenre = "";
-            setActiveGenre("");
+            prevFilter = null;
             loadAllTmdbFiles(true);
         });
 
@@ -544,6 +621,7 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
+            setActiveSortBtn(sortRecentBtn); // default
             loadAllTmdbFiles(true);
         });
     </script>
