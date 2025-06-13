@@ -134,7 +134,8 @@ async def start_handler(client, message):
 async def channel_file_handler(client, message):
     media = message.video or message.document or message.audio
     caption = await remove_unwanted(message.caption if message.caption else media.file_name)
-    cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>", parse_mode=enums.ParseMode.HTML)
+    async with copy_lock:
+        cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>", parse_mode=enums.ParseMode.HTML)
     await file_handler(cpy_msg)
     await message.delete()
 
