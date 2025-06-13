@@ -415,12 +415,14 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
                     )
 
                 # Send the photo with or without the button
-                await bot.send_photo(
-                    UPDATE_CHANNEL_ID,
-                    photo=poster_url,
-                    caption=info,
-                    parse_mode=enums.ParseMode.HTML,
-                    reply_markup=keyboard
+                await safe_api_call(
+                    bot.send_photo(
+                        UPDATE_CHANNEL_ID,
+                        photo=poster_url,
+                        caption=info,
+                        parse_mode=enums.ParseMode.HTML,
+                        reply_markup=keyboard
+                    )
                 )
                 await asyncio.sleep(3)
         except Exception as e:
