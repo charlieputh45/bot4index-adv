@@ -134,8 +134,8 @@ async def start_handler(client, message):
 async def channel_file_handler(client, message):
     await file_handler(message)
 
-@bot.on_message(filters.private & (filters.document | filters.video | filters.audio) & filters.user(OWNER_ID))
-async def handle_new_message(client, message):
+@bot.on_message(filters.private & filters.user(OWNER_ID) & (filters.document | filters.video | filters.audio | filters.photo))
+async def channel_file_handler(client, message):
     media = message.video or message.document or message.audio
     caption = await remove_unwanted(message.caption if message.caption else media.file_name)
     cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>", parse_mode=enums.ParseMode.HTML)
