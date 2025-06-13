@@ -326,7 +326,6 @@ async def file_queue_worker(bot):
                         title, release_year= await extract_movie_info(file_info["file_name"])
                         logger.info(f"{title} - {release_year}")
                         result = await get_by_name(title, release_year)
-                        logger.info(f"result -{result}")
                         tmdb_id, tmdb_type = result['id'], result['media_type'] 
                         await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot)
                 except Exception as e:
@@ -335,7 +334,7 @@ async def file_queue_worker(bot):
                         await safe_api_call(
                             bot.send_message(
                                 LOG_CHANNEL_ID,
-                                f'❌ Error processing TMDB info: {file_info["file_name"]}/n/n{e}',
+                                f'❌ Error processing TMDB info: {file_info["file_name"]}\n{title} - {release_year}\n\n{e}',
                                 parse_mode=enums.ParseMode.HTML
                             )
                         )
