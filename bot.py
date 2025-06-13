@@ -137,7 +137,7 @@ async def channel_file_handler(client, message):
     async with copy_lock:
         cpy_msg = await safe_api_call(message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>", parse_mode=enums.ParseMode.HTML))
     await file_handler(cpy_msg)
-    await message.delete()
+    await safe_api_call(message.delete())
 
 @bot.on_message(filters.channel & (filters.document | filters.video | filters.audio | filters.photo))
 async def channel_file_handler(client, message):
