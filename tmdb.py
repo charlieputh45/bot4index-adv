@@ -1,7 +1,7 @@
 import re
 import asyncio
 import aiohttp
-from config import TMDB_API_KEY
+from config import TMDB_API_KEY, logger
 
 POSTER_BASE_URL = 'https://image.tmdb.org/t/p/original'
 PROFILE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
@@ -134,6 +134,7 @@ async def get_by_id(tmdb_type, tmdb_id):
                 "trailer_url": trailer_url,
                 "poster_url": poster_url
             }
+            logger.info(f"mongo_dict: {mongo_dict}")
 
             return {
                 "message": message,
