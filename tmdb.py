@@ -1,7 +1,5 @@
-import re
-import asyncio
-import aiohttp
 from config import TMDB_API_KEY, logger
+import re
 
 POSTER_BASE_URL = 'https://image.tmdb.org/t/p/original'
 PROFILE_BASE_URL = 'https://image.tmdb.org/t/p/w500'
@@ -22,7 +20,6 @@ def clean_genre_name(genre):
     return re.sub(r'[^A-Za-z0-9]', '', genre)
 
 def genre_tag_with_emoji(genre):
-    # emoji = GENRE_EMOJI_MAP.get(genre, "")
     clean_name = clean_genre_name(genre)
     emoji = GENRE_EMOJI_MAP.get(clean_name, "")
     return f"#{clean_name}{' ' + emoji if emoji else ''}"
@@ -30,6 +27,7 @@ def genre_tag_with_emoji(genre):
 def extract_language(data):
     spoken_languages = data.get('spoken_languages', [])
     if spoken_languages:
+        # Join all available english_name fields, fallback to 'Unknown'
         return ", ".join(lang.get('english_name', 'Unknown') for lang in spoken_languages)
     return "Unknown"
 
@@ -45,6 +43,7 @@ def extract_genres(data):
     return genres
 
 def extract_release_date(data):
+    # Safely get release_date or first_air_date, fallback to empty string
     return data.get('release_date') or data.get('first_air_date', "")
 
 def extract_directors(tmdb_type, data, credits):
@@ -65,12 +64,15 @@ def extract_directors(tmdb_type, data, credits):
     return directors
 
 def extract_stars(credits, limit=5):
+    cast_list = credits.get('cast', [])
+    if not cast_list:
+        return []
     return [
         {
             "name": member.get('name'),
             "profile_path": profile_url(member.get('profile_path'))
         }
-        for member in credits.get('cast', [])[:limit]
+        for member in cast_list[:limit]
     ]
 
 def get_poster_url(data):
@@ -80,16 +82,22 @@ def get_poster_url(data):
 def get_backdrop_url(movie_images):
     for key in ['backdrops', 'posters']:
         if key in movie_images and movie_images[key]:
-            return f"{POSTER_BASE_URL}{movie_images[key][0]['file_path']}"
+            # Return the first available backdrop/poster path
+            path = movie_images[key][0].get('file_path')
+            if path:
+                return f"{POSTER_BASE_URL}{path}"
     return None
 
 async def get_trailer_url(session, tmdb_type, tmdb_id):
     video_url = f'https://api.themoviedb.org/3/{tmdb_type}/{tmdb_id}/videos?api_key={TMDB_API_KEY}'
     async with session.get(video_url) as video_response:
-        video_data = await video_response.json()
-        for video in video_data.get('results', []):
-            if video['site'] == 'YouTube' and video['type'] == 'Trailer':
-                return f"https://www.youtube.com/watch?v={video['key']}"
+        if video_response.status == 200:
+            data = await video_response.json()
+            results = data.get('results', [])
+            if results:
+                for video in results:
+                    if video.get('site') == 'YouTube' and video.get('type') == 'Trailer':
+                        return f"https://www.youtube.com/watch?v={video.get('key')}"
     return None
 
 async def get_by_id(tmdb_type, tmdb_id):
