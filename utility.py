@@ -305,10 +305,13 @@ async def file_queue_worker(bot):
         file_info, reply_func = item
         processing_count += 1
         try:
-            # Check for duplicate by file name in this channel
+            # Check for duplicate by file name in any TMDB document
             existing = await files_col.find_one({
-                "channel_id": file_info["channel_id"],
-                "file_name": file_info["file_name"]
+                "files": {
+                    "$elemMatch": {
+                        "file_name": file_info["file_name"]
+                    }
+                }
             })
             if existing:
                 telegram_link = generate_c_link(file_info["channel_id"], file_info["message_id"])
@@ -316,7 +319,7 @@ async def file_queue_worker(bot):
                     await safe_api_call(
                         bot.send_message(
                             LOG_CHANNEL_ID,
-                            f"⚠️ Duplicate File.\nLink: {telegram_link}",
+                            f"⚠️ Duplicate File (by name).\nLink: {telegram_link}",
                             parse_mode=enums.ParseMode.HTML
                         )
                     )
