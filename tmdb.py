@@ -122,13 +122,30 @@ async def get_by_id(tmdb_type, tmdb_id):
             directors_list = extract_directors(tmdb_type, data, credits)
             stars_list = extract_stars(credits)
 
-            directors_str = ", ".join([d["name"] for d in directors_list]) if directors_list else "Unknown"
-            stars_str = ", ".join([s["name"] for s in stars_list]) if stars_list else "Unknown"
+            try:
+                directors_str = ", ".join([d["name"] for d in directors_list]) if directors_list else "Unknown"
+            except Exception as e:
+                logger.error(f"Error joining directors_list: {directors_list}, error: {e}")
+                directors_str = "Unknown"
+
+            try:
+                stars_str = ", ".join([s["name"] for s in stars_list]) if stars_list else "Unknown"
+            except Exception as e:
+                logger.error(f"Error joining stars_list: {stars_list}, error: {e}")
+                stars_str = "Unknown"
+
             language = extract_language(data)
             genres = extract_genres(data)
             release_date = extract_release_date(data)
 
-            message = await format_tmdb_info(directors_str, stars_str, data)
+            try:
+                message = await format_tmdb_info(directors_str, stars_str, data)
+            except IndexError as e:
+                logger.error(f"IndexError in format_tmdb_info: {e}, data: {data}")
+                message = "Error formatting TMDB info."
+            except Exception as e:
+                logger.error(f"Error in format_tmdb_info: {e}, data: {data}")
+                message = "Error formatting TMDB info."
 
             mongo_dict = {
                 "tmdb_id": tmdb_id,
@@ -154,7 +171,13 @@ async def get_by_id(tmdb_type, tmdb_id):
             }
 
     except aiohttp.ClientError as e:
-        print(f"Error fetching TMDB data: {e}")
+        logger.error(f"Error fetching TMDB data: {e}")
+        return {"message": f"Error: {str(e)}", "poster_url": None}
+    except IndexError as e:
+        logger.error(f"IndexError (list out of range) in get_by_id: {e}")
+        return {"message": f"IndexError: {str(e)}", "poster_url": None}
+    except Exception as e:
+        logger.error(f"Unknown error in get_by_id: {e}")
         return {"message": f"Error: {str(e)}", "poster_url": None}
     return {"message": "Unknown error occurred.", "poster_url": None}
 
