@@ -46,6 +46,8 @@ bot = Client(
 # Track how many files each user has accessed in the current session
 user_file_count = defaultdict(int)
 
+copy_lock = asyncio.Lock()
+
 # =========================
 # Bot Command Handlers
 # =========================
@@ -132,19 +134,14 @@ async def start_handler(client, message):
 async def channel_file_handler(client, message):
     await file_handler(message)
 
-copy_lock = asyncio.Lock()
-
-@bot.on_message(
-    (filters.document | filters.video | filters.audio) & filters.private & filters.user(OWNER_ID)
-)
-async def private_file_handler(client, message):
-    media = message.document or message.video or message.audio or message.photo
-    if media:
-        caption = remove_unwanted(message.caption or (media.file_name if hasattr(media, "file_name") else ""))
-        async with copy_lock:
-            cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>")
-        await file_handler(cpy_msg)
-        await message.delete()
+@bot.on_message(filters.private & (filters.document | filters.video | filters.audio) & filters.user(OWNER_ID))
+async def handle_new_message(client, message):
+    media = message.video or message.document or message.audio
+    caption = await remove_unwanted(message.caption if message.caption else media.file_name)
+    async with copy_lock:
+        cpy_msg = await message.copy(TMDB_CHANNEL_ID, caption=f"<code>{caption}</code>", parse_mode=enums.ParseMode.HTML)
+    await file_handler(cpy_msg)
+    await message.delete()
 
 @bot.on_message(filters.command("index") & filters.user(OWNER_ID))
 async def index_channel_files(client, message: Message):
