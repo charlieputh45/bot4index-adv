@@ -29,7 +29,9 @@ def genre_tag_with_emoji(genre):
 
 def extract_language(data):
     spoken_languages = data.get('spoken_languages', [])
-    return spoken_languages[0]['english_name'] if spoken_languages else "Unknown"
+    if spoken_languages:
+        return ", ".join(lang.get('english_name', 'Unknown') for lang in spoken_languages)
+    return "Unknown"
 
 def extract_genres(data):
     genres = []
