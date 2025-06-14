@@ -237,9 +237,9 @@
     </nav>
     <div class="container py-4">
         <div class="d-flex flex-wrap gap-2 justify-content-center mb-3" id="sortBar">
-            <button class="btn btn-outline-info active" id="sortRecentBtn">Recently Added</button>
+            <button class="btn btn-outline-info" id="sortRecentBtn">Recently Added</button>
             <button class="btn btn-outline-info" id="sortTopRatedBtn">Top Rated</button>
-            <button class="btn btn-outline-info" id="sortNewReleaseBtn">New Release</button>
+            <button class="btn btn-outline-info active" id="sortNewReleaseBtn">New Release</button>
         </div>
         <div class="mb-4 d-flex justify-content-center">
             <input type="text" class="form-control w-50" id="searchInput" placeholder="Search by title...">
@@ -250,6 +250,9 @@
         </div>
         <div class="d-flex justify-content-center mt-2">
             <div id="loadingSpinner" class="spinner-border text-primary" style="display:none" role="status"></div>
+        </div>
+        <div class="d-flex justify-content-center mt-2">
+            <button id="filterBackBtn" class="btn btn-secondary" style="display:none;">Back</button>
         </div>
     </div>
     <!-- Modal -->
@@ -295,8 +298,7 @@
         let currentSort = "_id";
         let currentOrder = "desc";
 
-        // For modal back button
-        let prevFilter = null;
+        let filterHistory = []; // replaces prevFilter
 
         const posterGrid = document.getElementById('posterGrid');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -377,6 +379,18 @@
                 posterGrid.appendChild(div);
             });
         }
+
+        const filterBackBtn = document.getElementById('filterBackBtn');
+
+        function updateFilterBackBtn() {
+            filterBackBtn.style.display = filterHistory.length > 0 ? 'block' : 'none';
+        }
+
+        filterBackBtn.onclick = function () {
+            if (filterHistory.length > 0) {
+                restorePrevFilter();
+            }
+        };
 
         function showTmdbModal(entry) {
             document.getElementById('tmdbModalLabel').textContent = entry.title || '';
@@ -471,16 +485,13 @@
             document.getElementById('getFilesBtn').style.display = "";
             document.getElementById('backToInfoBtn').style.display = "none";
 
-            // Back button (only show if prevFilter is set)
-            document.getElementById('modalBackBtn').innerHTML = prevFilter
-                ? `<button class="btn btn-secondary" id="modalBackFilterBtn">Back</button>`
-                : "";
+            // Always show Back button
+            document.getElementById('modalBackBtn').innerHTML = `<button class="btn btn-secondary" id="modalBackFilterBtn">Back</button>`;
 
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('tmdbModal'));
             modal.show();
 
-            // Add click handlers for genre, cast, director, back, and files/info toggle
             setTimeout(() => {
                 document.querySelectorAll('.genre-badge').forEach(el => {
                     el.onclick = function () {
@@ -508,8 +519,8 @@
                 });
                 const backBtn = document.getElementById('modalBackFilterBtn');
                 if (backBtn) {
+                    backBtn.disabled = false;
                     backBtn.onclick = function () {
-                        restorePrevFilter();
                         modal.hide();
                     };
                 }
@@ -532,24 +543,27 @@
         }
 
         function setPrevFilter() {
-            prevFilter = {
+            // Push a copy of the current filter state
+            filterHistory.push({
                 currentQuery,
                 currentCast,
                 currentDirector,
                 currentGenre,
                 offset
-            };
+            });
+            updateFilterBackBtn();
         }
 
         function restorePrevFilter() {
-            if (!prevFilter) return;
-            currentQuery = prevFilter.currentQuery;
-            currentCast = prevFilter.currentCast;
-            currentDirector = prevFilter.currentDirector;
-            currentGenre = prevFilter.currentGenre;
-            offset = prevFilter.offset;
-            prevFilter = null;
+            if (filterHistory.length === 0) return;
+            const prev = filterHistory.pop();
+            currentQuery = prev.currentQuery;
+            currentCast = prev.currentCast;
+            currentDirector = prev.currentDirector;
+            currentGenre = prev.currentGenre;
+            offset = prev.offset;
             loadAllTmdbFiles(true);
+            updateFilterBackBtn();
         }
 
         function filterBy(type, value) {
@@ -604,6 +618,7 @@
                 alert("Failed to load TMDB data.");
             } finally {
                 loadingSpinner.style.display = 'none';
+                updateFilterBackBtn();
             }
         }
 
@@ -612,7 +627,7 @@
             currentCast = "";
             currentDirector = "";
             currentGenre = "";
-            prevFilter = null;
+            filterHistory = [];
             loadAllTmdbFiles(true);
         });
 

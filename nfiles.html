@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
 <head>
@@ -56,6 +55,29 @@
         border-radius: 0.7rem;
         max-height: 340px;
         margin: 0 auto;
+    }
+    .poster-caption {
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(24, 26, 27, 0.82);
+        color: #e0e0e0;
+        font-size: 1em;
+        font-weight: 600;
+        padding: 0.5em 0.7em;
+        border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        text-align: center;
+        word-break: break-all;
+        box-sizing: border-box;
+    }
+    .poster-tile:hover .poster-caption,
+    .poster-tile:focus .poster-caption {
+        opacity: 1;
     }
     .file-card {
         background: #23272b;
@@ -219,6 +241,7 @@ function renderPosters(results, append=false) {
         div.onclick = () => showFileModal(file);
         div.innerHTML = `
             <img class="poster-img" src="${file.thumb_url || 'https://i.ibb.co/qzmwLvx/No-Image-Available.jpg'}" alt="Thumb">
+            <div class="poster-caption">${file.file_name || ''}</div>
         `;
         posterGrid.appendChild(div);
     });
