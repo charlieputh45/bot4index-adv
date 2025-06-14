@@ -205,7 +205,7 @@ async def api_all_n_files(
     params = dict(q=q)
     query = build_query(params, search_fields)
 
-    cursor = n_files_col.find(query, {"_id": 0}).sort("date", -1).skip(offset).limit(limit)
+    cursor = n_files_col.find(query, {"_id": 0}).sort("_id", -1).skip(offset).limit(limit)
     n_files = await cursor.to_list(length=limit)
 
     total = await n_files_col.count_documents(query)
