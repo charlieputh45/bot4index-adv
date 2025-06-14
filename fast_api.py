@@ -40,6 +40,7 @@ class ExpiringCache:
             self._cache.clear()
 
 all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
+all_n_files_cache = ExpiringCache(CACHE_TTL_SECONDS)  # Add this line
 
 api = FastAPI()
 api.add_middleware(
@@ -189,7 +190,7 @@ async def api_all_n_files(
     Return entries from n_files_col, paginated and filtered by search query.
     """
     cache_key = make_cache_key("nfiles", q, offset, limit)
-    cached = all_tmdb_files_cache.get(cache_key)
+    cached = all_n_files_cache.get(cache_key)  # Use the new cache here
     if cached:
         return JSONResponse(cached)
 
@@ -210,5 +211,5 @@ async def api_all_n_files(
         "has_more": has_more,
         "total": total
     }
-    all_tmdb_files_cache.set(cache_key, response_data)
+    all_n_files_cache.set(cache_key, response_data)  # Use the new cache here
     return JSONResponse(response_data)
