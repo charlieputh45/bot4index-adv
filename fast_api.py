@@ -6,6 +6,8 @@ from config import BOT_USERNAME, MY_DOMAIN
 from utility import generate_telegram_link
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
+import copy
+from threading import Lock
 
 CACHE_TTL_SECONDS = 300  # 5 minutes
 
@@ -13,23 +15,29 @@ class ExpiringCache:
     def __init__(self, ttl_seconds: int):
         self.ttl = ttl_seconds
         self._cache: Dict[str, Any] = {}
+        self._lock = Lock()
 
     def get(self, key: str):
-        entry = self._cache.get(key)
-        if not entry:
-            return None
-        value, expires_at = entry
-        if datetime.now(timezone.utc) > expires_at:
-            del self._cache[key]
-            return None
-        return value
+        with self._lock:
+            entry = self._cache.get(key)
+            if not entry:
+                return None
+            value, expires_at = entry
+            if datetime.now(timezone.utc) > expires_at:
+                del self._cache[key]
+                return None
+            # Return a deepcopy to avoid mutation issues
+            return copy.deepcopy(value)
 
     def set(self, key: str, value: Any):
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl)
-        self._cache[key] = (value, expires_at)
+        # Store a deepcopy to avoid mutation issues
+        with self._lock:
+            self._cache[key] = (copy.deepcopy(value), expires_at)
 
     def clear(self):
-        self._cache.clear()
+        with self._lock:
+            self._cache.clear()
 
 all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
 
