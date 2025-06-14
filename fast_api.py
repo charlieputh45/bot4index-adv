@@ -1,3 +1,4 @@
+import copy
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -6,7 +7,6 @@ from config import BOT_USERNAME, MY_DOMAIN
 from utility import generate_telegram_link
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
-import copy
 from threading import Lock
 
 CACHE_TTL_SECONDS = 300  # 5 minutes

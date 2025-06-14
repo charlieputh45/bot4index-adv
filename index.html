@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <title>TG⚡️FLIX</title>
@@ -13,22 +14,26 @@
             font-family: 'Montserrat', Arial, sans-serif;
             min-height: 100vh;
         }
+
         .navbar {
             background: #181a1b;
             border-bottom: 1px solid #23272b;
             box-shadow: 0 2px 8px #0004;
         }
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.7rem;
             letter-spacing: 2px;
             color: #7da0fa !important;
         }
+
         .poster-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.2rem;
         }
+
         .poster-tile {
             background: #23272b;
             border-radius: 1rem;
@@ -41,11 +46,13 @@
             padding: 0.5rem;
             border: 2px solid transparent;
         }
+
         .poster-tile:hover {
             transform: scale(1.045);
             box-shadow: 0 8px 32px #0d6efd44;
             z-index: 2;
         }
+
         .poster-img {
             width: 100%;
             height: auto;
@@ -55,9 +62,11 @@
             border-radius: 0.7rem;
             max-height: 350px;
         }
+
         .poster-tile:hover .poster-img {
             filter: brightness(0.85) blur(1px);
         }
+
         .poster-overlay {
             position: absolute;
             bottom: 0;
@@ -74,27 +83,32 @@
             flex-direction: column;
             justify-content: flex-end;
         }
+
         .poster-tile:hover .poster-overlay {
             opacity: 1;
             pointer-events: auto;
         }
+
         .poster-title {
             font-size: 1.13rem;
             font-weight: 700;
             margin-bottom: 0.2rem;
             text-shadow: 0 2px 8px #000a;
         }
+
         .poster-meta {
             font-size: 0.98rem;
             color: #7da0fa;
             margin-bottom: 0.1rem;
         }
+
         .poster-rating {
             font-size: 1.05rem;
             color: #ffd700;
             font-weight: 600;
             margin-left: 0.5rem;
         }
+
         .modal-header,
         .modal-body,
         .modal-footer {
@@ -102,11 +116,13 @@
             color: #fff;
             text-align: center;
         }
+
         .tmdb-meta {
             font-size: 0.98rem;
             margin-bottom: 0.5rem;
             text-align: center;
         }
+
         .tmdb-poster-modal {
             width: 100%;
             max-width: 220px;
@@ -116,6 +132,7 @@
             margin-left: auto;
             margin-right: auto;
         }
+
         .file-card {
             background: #23272b;
             border-radius: 0.7rem;
@@ -128,32 +145,46 @@
             align-items: stretch;
             text-align: left;
         }
+
         .file-info-block {
             min-width: 0;
             margin-bottom: 0.2rem;
             word-break: break-all;
         }
+
         .file-label {
             font-size: 0.93em;
             color: #7da0fa;
             margin-bottom: 0.1em;
             font-weight: 500;
         }
+
         .file-value {
             color: #e0e0e0;
             font-size: 1em;
             word-break: break-all;
         }
+
         .file-name {
             font-weight: 600;
         }
+
         .fade-in {
             animation: fadeIn 0.7s;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.97);}
-            to { opacity: 1; transform: scale(1);}
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
+
         .profile-card-row {
             display: flex;
             flex-wrap: wrap;
@@ -161,6 +192,7 @@
             justify-content: center;
             margin-bottom: 1rem;
         }
+
         .profile-card {
             background: #23272b;
             border-radius: 0.7rem;
@@ -174,11 +206,13 @@
             align-items: center;
             padding: 0;
         }
+
         .profile-card:hover {
             background: #7da0fa;
             color: #181818;
             box-shadow: 0 4px 16px #7da0fa44;
         }
+
         .profile-img {
             width: 100%;
             aspect-ratio: 2/3;
@@ -187,6 +221,7 @@
             border-radius: 0.7rem 0.7rem 0 0;
             display: block;
         }
+
         .profile-name {
             font-size: 0.95rem;
             color: inherit;
@@ -195,31 +230,65 @@
             text-align: center;
             padding: 0.4em 0.2em 0.5em 0.2em;
             background: none;
-            white-space: normal; /* allow wrapping */
+            white-space: normal;
+            /* allow wrapping */
             overflow-wrap: break-word;
             word-break: break-word;
         }
+
         @media (max-width: 576px) {
-            .poster-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem;}
-            .poster-img { max-height: 200px;}
-            .tmdb-poster-modal { max-width: 100%;}
-            .file-card { padding: 0.7rem 0.5rem;}
-            .profile-card { width: 100px; } /* was 60px */
-            .profile-img { width: 100%; height: auto; } /* ensure image fills card */
-            .profile-name { font-size: 0.85rem; }
+            .poster-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.7rem;
+            }
+
+            .poster-img {
+                max-height: 200px;
+            }
+
+            .tmdb-poster-modal {
+                max-width: 100%;
+            }
+
+            .file-card {
+                padding: 0.7rem 0.5rem;
+            }
+
+            .profile-card {
+                width: 100px;
+            }
+
+            /* was 60px */
+            .profile-img {
+                width: 100%;
+                height: auto;
+            }
+
+            /* ensure image fills card */
+            .profile-name {
+                font-size: 0.85rem;
+            }
         }
+
         @media (max-width: 768px) {
-            .file-card { flex-direction: column; align-items: stretch; text-align: center; padding: 0.7rem 0.5rem;}
+            .file-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                padding: 0.7rem 0.5rem;
+            }
         }
     </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">TG⚡️FLIX</a>
             <div class="ms-auto">
                 <div class="dropdown">
-                    <button class="btn btn-outline-light" type="button" id="menuDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border:none;background:none;">
+                    <button class="btn btn-outline-light" type="button" id="menuDropdown" data-bs-toggle="dropdown"
+                        aria-expanded="false" style="border:none;background:none;">
                         <span style="font-size:1.8rem;line-height:1;">
                             &#9776;
                         </span>
@@ -274,7 +343,8 @@
                         <div id="modalFiles" style="display:none"></div>
                         <div class="d-flex flex-column align-items-center gap-2 mt-3">
                             <button class="btn btn-outline-info" id="getFilesBtn">Get Files</button>
-                            <button class="btn btn-outline-secondary" id="backToInfoBtn" style="display:none">Back to Info</button>
+                            <button class="btn btn-outline-secondary" id="backToInfoBtn" style="display:none">Back to
+                                Info</button>
                         </div>
                         <div id="modalBackBtn" class="mt-2 text-end"></div>
                     </div>
@@ -295,7 +365,7 @@
         let currentGenre = "";
 
         // Sorting state
-        let currentSort = "_id";
+        let currentSort = "release_date";
         let currentOrder = "desc";
 
         let filterHistory = []; // replaces prevFilter
@@ -636,9 +706,44 @@
         });
 
         window.addEventListener('DOMContentLoaded', () => {
-            setActiveSortBtn(sortRecentBtn); // default
+            setActiveSortBtn(sortNewReleaseBtn); // default
             loadAllTmdbFiles(true);
         });
     </script>
+    <!-- About & Social Section -->
+    <footer class="container mt-5 mb-4">
+        <hr style="border-color:#23272b;">
+        <div class="text-center">
+            <h5 class="mb-2" style="color:#7da0fa;">About TG⚡️FLIX</h5>
+            <p style="color:#b0b8c1;max-width:600px;margin:0 auto;">
+                TG⚡️FLIX is build with love for Telegram users to easily browse and discover TMDB-based content.
+            <div class="mt-3">
+                <a href="https://t.me/your_channel" target="_blank" class="btn btn-outline-info btn-sm me-2"
+                    style="min-width:120px;">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/telegram.svg" alt="Telegram"
+                        style="width:1.2em;vertical-align:middle;margin-right:6px;filter:invert(60%);">
+                    For Updates
+                </a>
+                <a href="https://t.me/your_support" target="_blank" class="btn btn-outline-secondary btn-sm me-2"
+                    style="min-width:120px;">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/telegram.svg" alt="Telegram"
+                        style="width:1.2em;vertical-align:middle;margin-right:6px;filter:invert(40%);">
+                    Contact support
+                </a>
+                <!--
+                <a href="https://github.com/your_github" target="_blank" class="btn btn-outline-light btn-sm"
+                    style="min-width:120px;">
+                    <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub"
+                        style="width:1.2em;vertical-align:middle;margin-right:6px;filter:invert(80%);">
+                    GitHub
+                </a>
+                -->
+            </div>
+            <div class="mt-3" style="color:#6c757d;font-size:0.95em;">
+                &copy; 2025 TG⚡️FLIX. Not affiliated with Telegram or TMDB.
+            </div>
+        </div>
+    </footer>
 </body>
+
 </html>
