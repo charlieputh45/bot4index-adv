@@ -382,7 +382,7 @@ async def file_queue_worker(bot):
             else:
                 try:
                     if str(file_info["channel_id"]) not in EXCLUDE_CHANNEL_ID:
-                        title = await remove_redandent(file_info["file_name"])
+                        title = remove_redandent(file_info["file_name"])
                         parsed_data = PTN.parse(title)
                         title = parsed_data.get("title").replace("_", " ").replace("-", " ").replace(":", " ")
                         title = ' '.join(title.split())
@@ -390,9 +390,9 @@ async def file_queue_worker(bot):
                         season = parsed_data.get("season")
                         episode = parsed_data.get("episode")
                         if season is None:
-                            result = get_movie_by_name(title, year)
+                            result = await get_movie_by_name(title, year)
                         else:
-                            result = get_tv_by_name(title, year)
+                            result = await get_tv_by_name(title, year)
                         tmdb_id, tmdb_type = result['id'], result['media_type'] 
                         await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot)
                 except Exception as e:
