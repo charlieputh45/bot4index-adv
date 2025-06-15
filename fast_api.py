@@ -1,10 +1,50 @@
+import copy
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from db import files_col, n_files_col
 from config import BOT_USERNAME, MY_DOMAIN
-from datetime import datetime
-from utility import generate_telegram_link, all_tmdb_files_cache, all_n_files_cache
+from datetime import datetime, timedelta, timezone
+from utility import generate_telegram_link
+from typing import Any, Dict
+from threading import Lock
+
+# =========================
+# Cache System
+# =========================
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
+class ExpiringCache:
+    def __init__(self, ttl_seconds: int):
+        self.ttl = ttl_seconds
+        self._cache: Dict[str, Any] = {}
+        self._lock = Lock()
+
+    def get(self, key: str):
+        with self._lock:
+            entry = self._cache.get(key)
+            if not entry:
+                return None
+            value, expires_at = entry
+            if datetime.now(timezone.utc) > expires_at:
+                del self._cache[key]
+                return None
+            # Return a deepcopy to avoid mutation issues
+            return copy.deepcopy(value)
+
+    def set(self, key: str, value: Any):
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl)
+        # Store a deepcopy to avoid mutation issues
+        with self._lock:
+            self._cache[key] = (copy.deepcopy(value), expires_at)
+
+    def clear(self):
+        with self._lock:
+            self._cache.clear()
+
+all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
+all_n_files_cache = ExpiringCache(CACHE_TTL_SECONDS)  
+
 
 api = FastAPI()
 api.add_middleware(

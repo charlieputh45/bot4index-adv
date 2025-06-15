@@ -1,6 +1,5 @@
 import re
 import PTN
-import copy
 import base64
 import asyncio
 import uuid
@@ -21,45 +20,8 @@ from config import (SHORTERNER_URL, URLSHORTX_API_TOKEN,
                     UPDATE_CHANNEL_ID, EXCLUDE_CHANNEL_ID,
                     LOG_CHANNEL_ID)
 from tmdb import get_movie_by_name, get_tv_by_name, get_by_id
-from typing import Any, Dict
-from threading import Lock
 
 
-# =========================
-# Cache System
-# =========================
-CACHE_TTL_SECONDS = 300  # 5 minutes
-
-class ExpiringCache:
-    def __init__(self, ttl_seconds: int):
-        self.ttl = ttl_seconds
-        self._cache: Dict[str, Any] = {}
-        self._lock = Lock()
-
-    def get(self, key: str):
-        with self._lock:
-            entry = self._cache.get(key)
-            if not entry:
-                return None
-            value, expires_at = entry
-            if datetime.now(timezone.utc) > expires_at:
-                del self._cache[key]
-                return None
-            # Return a deepcopy to avoid mutation issues
-            return copy.deepcopy(value)
-
-    def set(self, key: str, value: Any):
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl)
-        # Store a deepcopy to avoid mutation issues
-        with self._lock:
-            self._cache[key] = (copy.deepcopy(value), expires_at)
-
-    def clear(self):
-        with self._lock:
-            self._cache.clear()
-
-all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
-all_n_files_cache = ExpiringCache(CACHE_TTL_SECONDS)  
 
 
 # =========================
@@ -461,8 +423,6 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
         },
         upsert=True
     )
-
-    all_tmdb_files_cache.clear()  # Clear the cache after updating
     
     # Only send message if this is a new tmdb_id/tmdb_type entry
     if not existing and tmdb_info:
