@@ -8,3 +8,4 @@ requests
 imdbpy
 aiohttp
 motor
+parse-torrent-title==2.8.1

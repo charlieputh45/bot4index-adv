@@ -235,25 +235,53 @@ def format_duration(duration):
     except Exception:
         return str(duration) if duration else ""
 
-async def get_by_name(movie_name, release_year):
-    tmdb_search_url = f'https://api.themoviedb.org/3/search/multi?api_key={TMDB_API_KEY}&query={movie_name}'
+async def get_movie_by_name(movie_name, release_year=None):
+    tmdb_search_url = f'https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={movie_name}'
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(tmdb_search_url) as search_response:
                 search_data = await search_response.json()
-                if search_data['results']:
-                    matching_results = [
-                        result for result in search_data['results']
-                        if ('release_date' in result and result['release_date'][:4] == str(release_year)) or
-                        ('first_air_date' in result and result['first_air_date'][:4] == str(release_year))
-                    ]
-                    if matching_results:
-                        result = matching_results[0]
+                if search_data.get('results'):
+                    results = search_data['results']
+                    if release_year:
+                        # Filter by release year if provided
+                        results = [
+                            result for result in results
+                            if 'release_date' in result and result['release_date'] and result['release_date'][:4] == str(release_year)
+                        ]
+                    if results:
+                        result = results[0]
                         return {
                             "id": result['id'],
-                            "media_type": result['media_type']
+                            "media_type": "movie"
                         }
         return None
     except Exception as e:
-        print(f"Error fetching TMDb ID: {e}")
+        logger.error(f"Error fetching TMDb movie by name: {e}")
         return
+
+async def get_tv_by_name(tv_name, first_air_year=None):
+    tmdb_search_url = f'https://api.themoviedb.org/3/search/tv?api_key={TMDB_API_KEY}&query={tv_name}'
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(tmdb_search_url) as search_response:
+                search_data = await search_response.json()
+                if search_data.get('results'):
+                    results = search_data['results']
+                    if first_air_year:
+                        # Filter by first air year if provided
+                        results = [
+                            result for result in results
+                            if 'first_air_date' in result and result['first_air_date'] and result['first_air_date'][:4] == str(first_air_year)
+                        ]
+                    if results:
+                        result = results[0]
+                        return {
+                            "id": result['id'],
+                            "media_type": "tv"
+                        }
+        return None
+    except Exception as e:
+        logger.error(f"Error fetching TMDb TV by name: {e}")
+        return
+    

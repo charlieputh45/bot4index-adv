@@ -1,6 +1,8 @@
 import re
-import asyncio
+import PTN
+import copy
 import base64
+import asyncio
 import uuid
 import requests
 from datetime import datetime, timezone, timedelta
@@ -8,7 +10,6 @@ from pyrogram.errors import FloodWait
 from pyrogram import enums
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import logger
-
 from db import (
     allowed_channels_col,
     users_col,
@@ -19,7 +20,47 @@ from db import (
 from config import (SHORTERNER_URL, URLSHORTX_API_TOKEN, 
                     UPDATE_CHANNEL_ID, EXCLUDE_CHANNEL_ID,
                     LOG_CHANNEL_ID)
-from tmdb import get_by_name, get_by_id
+from tmdb import get_movie_by_name, get_tv_by_name, get_by_id
+from typing import Any, Dict
+from threading import Lock
+
+
+# =========================
+# Cache System
+# =========================
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
+class ExpiringCache:
+    def __init__(self, ttl_seconds: int):
+        self.ttl = ttl_seconds
+        self._cache: Dict[str, Any] = {}
+        self._lock = Lock()
+
+    def get(self, key: str):
+        with self._lock:
+            entry = self._cache.get(key)
+            if not entry:
+                return None
+            value, expires_at = entry
+            if datetime.now(timezone.utc) > expires_at:
+                del self._cache[key]
+                return None
+            # Return a deepcopy to avoid mutation issues
+            return copy.deepcopy(value)
+
+    def set(self, key: str, value: Any):
+        expires_at = datetime.now(timezone.utc) + timedelta(seconds=self.ttl)
+        # Store a deepcopy to avoid mutation issues
+        with self._lock:
+            self._cache[key] = (copy.deepcopy(value), expires_at)
+
+    def clear(self):
+        with self._lock:
+            self._cache.clear()
+
+all_tmdb_files_cache = ExpiringCache(CACHE_TTL_SECONDS)
+all_n_files_cache = ExpiringCache(CACHE_TTL_SECONDS)  
+
 
 # =========================
 # Constants & Globals
@@ -34,6 +75,13 @@ all_tmdb_files_cache = {}
 # =========================
 # Channel & User Utilities
 # =========================
+
+def generate_telegram_link(bot_username, channel_id, message_id):
+    """Generate a base64-encoded Telegram deep link for a file."""
+    raw = f"{channel_id}_{message_id}".encode()
+    b64 = base64.urlsafe_b64encode(raw).decode().rstrip("=")
+    return f"https://telegram.dog/{bot_username}?start=file_{b64}"
+
 
 async def file_handler(message):
     allowed_channels = await get_allowed_channels()
@@ -268,30 +316,38 @@ async def extract_tmdb_link(tmdb_url):
         tmdb_id = int(re.search(collection_pattern, tmdb_url).group(1)) 
     return tmdb_type, tmdb_id
 
-async def extract_movie_info(caption):
-    try:
-        current_year = datetime.now().year + 2  # Allow a couple of years ahead for upcoming movies
-        # Exclude 4-digit numbers followed by 'p' (like 1080p, 2160p, 720p)
-        years = [
-            y for y in re.findall(r'(\d{4})', caption)
-            if 1900 <= int(y) <= current_year and not re.search(rf'{y}p', caption, re.IGNORECASE)
-        ]
-        release_year = years[-1] if years else None
+def remove_redandent(filename):
+    """
+    Remove common username patterns from a filename while preserving the content title.
 
-        # Get everything before the last year
-        if release_year:
-            movie_name = caption.rsplit(release_year, 1)[0]
-            movie_name = movie_name.replace('.', ' ').replace('(', '').replace(')', '').strip()
-            movie_name = re.split(r'\s*A\s*K\s*A\s*', movie_name, flags=re.IGNORECASE)[0].strip()
-        else:
-            movie_name = caption
+    Args:
+        filename (str): The input filename
 
-        # Return only movie_name and release_year, season and episode as None
-        return movie_name, release_year
-    except Exception as e:
-        logger.error(f"Extract Movie info Error : {e}")
-    return None, None, 
+    Returns:
+        str: Filename with usernames removed
+    """
+    filename = filename.replace("\n", "\\n")
 
+    patterns = [
+        r"^@[\w\.-]+?(?=_)",
+        r"_@[A-Za-z]+_|@[A-Za-z]+_|[\[\]\s@]*@[^.\s\[\]]+[\]\[\s@]*",  
+        r"^[\w\.-]+?(?=_Uploads_)",  
+        r"^(?:by|from)[\s_-]+[\w\.-]+?(?=_)",  
+        r"^\[[\w\.-]+?\][\s_-]*",  
+        r"^\([\w\.-]+?\)[\s_-]*",  
+    ]
+
+    result = filename
+    for pattern in patterns:
+        match = re.search(pattern, result)
+        if match:
+            result = re.sub(pattern, " ", result)
+            break  
+
+    
+    result = re.sub(r"^[_\s-]+|[_\s-]+$", " ", result)
+
+    return result
 # =========================
 # Queue System for File Processing
 # =========================
@@ -326,8 +382,17 @@ async def file_queue_worker(bot):
             else:
                 try:
                     if str(file_info["channel_id"]) not in EXCLUDE_CHANNEL_ID:
-                        title, release_year= await extract_movie_info(file_info["file_name"])
-                        result = await get_by_name(title, release_year)
+                        title = await remove_redandent(file_info["file_name"])
+                        parsed_data = PTN.parse(title)
+                        title = parsed_data.get("title").replace("_", " ").replace("-", " ").replace(":", " ")
+                        title = ' '.join(title.split())
+                        year = parsed_data.get("year")
+                        season = parsed_data.get("season")
+                        episode = parsed_data.get("episode")
+                        if season is None:
+                            result = get_movie_by_name(title, year)
+                        else:
+                            result = get_tv_by_name(title, year)
                         tmdb_id, tmdb_type = result['id'], result['media_type'] 
                         await upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot)
                 except Exception as e:
@@ -336,7 +401,7 @@ async def file_queue_worker(bot):
                         await safe_api_call(
                             bot.send_message(
                                 LOG_CHANNEL_ID,
-                                f'❌ Error processing TMDB info: {file_info["file_name"]}\n{title} - {release_year}\n\n{e}',
+                                f'❌ Error processing TMDB info: {file_info["file_name"]}\n{title} - {year}\n\n{e}',
                                 parse_mode=enums.ParseMode.HTML
                             )
                         )
@@ -396,6 +461,8 @@ async def upsert_file_with_tmdb_info(file_info, tmdb_type, tmdb_id, bot):
         },
         upsert=True
     )
+
+    all_tmdb_files_cache.clear()  # Clear the cache after updating
     
     # Only send message if this is a new tmdb_id/tmdb_type entry
     if not existing and tmdb_info:
